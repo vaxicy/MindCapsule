@@ -11,6 +11,8 @@
   let pendingCaptions = false;
   let panelPos = { right: 24, top: 90 };
   let collapsed = false;
+  let domCaptionCollector = null;
+  let videoTimeListener = null;
 
   const STORAGE_KEYS = window.MC_STORAGE_KEYS;
 
@@ -112,6 +114,84 @@
     return text ? { text, count: text.length } : null;
   }
 
+  // ---- DOM caption collection (accumulate as video plays) ----
+  function ensureDomCollector() {
+    if (domCaptionCollector) return;
+    domCaptionCollector = {
+      active: false,
+      seen: new Set(),
+      items: [],
+      observer: null
+    };
+  }
+
+  function resetDomCollector() {
+    if (domCaptionCollector && domCaptionCollector.observer) {
+      domCaptionCollector.observer.disconnect();
+    }
+    domCaptionCollector = null;
+  }
+
+  function startDomCollection() {
+    ensureDomCollector();
+    if (domCaptionCollector.active) return;
+    domCaptionCollector.active = true;
+
+    const read = () => {
+      const segs = document.querySelectorAll('.ytp-caption-segment');
+      let added = false;
+      segs.forEach(seg => {
+        const text = seg.textContent.trim();
+        if (!text) return;
+        if (!domCaptionCollector.seen.has(text)) {
+          domCaptionCollector.seen.add(text);
+          domCaptionCollector.items.push(text);
+          added = true;
+        }
+      });
+      if (added) updateDomCollectionStatus();
+    };
+
+    read();
+    const container = document.querySelector('.ytp-caption-window-container') || document.body;
+    domCaptionCollector.observer = new MutationObserver(read);
+    domCaptionCollector.observer.observe(container, { subtree: true, childList: true, characterData: true });
+
+    const video = document.querySelector('video');
+    if (video && !videoTimeListener) {
+      videoTimeListener = () => updateDomCollectionStatus();
+      video.addEventListener('timeupdate', videoTimeListener);
+    }
+  }
+
+  function stopDomCollection() {
+    if (!domCaptionCollector) return;
+    domCaptionCollector.active = false;
+    if (domCaptionCollector.observer) domCaptionCollector.observer.disconnect();
+    const video = document.querySelector('video');
+    if (video && videoTimeListener) {
+      video.removeEventListener('timeupdate', videoTimeListener);
+      videoTimeListener = null;
+    }
+  }
+
+  function getCollectedText() {
+    if (!domCaptionCollector) return '';
+    return domCaptionCollector.items.join(' ').trim();
+  }
+
+  function updateDomCollectionStatus() {
+    const infoEl = document.getElementById('mc-caption-info');
+    if (!infoEl) return;
+    const text = getCollectedText();
+    const count = text.length;
+    const video = document.querySelector('video');
+    const duration = video && video.duration || 0;
+    const current = video && video.currentTime || 0;
+    const pct = duration ? Math.min(100, Math.round((current / duration) * 100)) : 0;
+    infoEl.textContent = t('collectingDom', lang).replace('{n}', count.toLocaleString()).replace('{pct}', pct);
+  }
+
   // ---- panel build ----
   function buildPanel() {
     panelRoot = document.createElement('div');
@@ -207,16 +287,19 @@
     }
 
     if (!selectedTrack) {
-      // Last-resort DOM fallback: only the currently visible subtitle segments.
+      // No caption track available: fall back to accumulating DOM captions as the video plays.
       const dom = readDomCaptions();
       if (dom && dom.text) {
-        selectedTrack = { name: t('domOnlyTitle', lang), languageCode: getBrowserLangCode(), kind: 'dom', baseUrl: '', _text: dom.text };
+        selectedTrack = { name: t('domOnlyTitle', lang), languageCode: getBrowserLangCode(), kind: 'dom', baseUrl: '' };
+        startDomCollection();
+        selectedTrack._text = getCollectedText() || dom.text;
         setStatusLine(`${t('domOnlyTitle', lang)} · DOM`);
-        if (infoEl) infoEl.textContent = t('domOnlyHint', lang).replace('{n}', dom.count.toLocaleString());
+        updateDomCollectionStatus();
         genBtn.disabled = false;
         renderDetectButton(false);
         return;
       }
+      stopDomCollection();
       setStatusLine(t('noCaptions', lang));
       if (infoEl) infoEl.textContent = t('noCaptionsHint', lang);
       genBtn.disabled = true;
@@ -227,15 +310,29 @@
     setStatusLine(t('readingCaptions', lang));
     const data = await fetchTranscript(selectedTrack);
     if (!data || !data.text) {
+      // Fetch failed: try DOM collection as fallback.
+      const dom = readDomCaptions();
+      if (dom && dom.text) {
+        startDomCollection();
+        selectedTrack._text = getCollectedText() || dom.text;
+        setStatusLine(`${t('domOnlyTitle', lang)} · DOM`);
+        updateDomCollectionStatus();
+        genBtn.disabled = false;
+        renderDetectButton(false);
+        return;
+      }
+      stopDomCollection();
       setStatusLine(t('noCaptions', lang));
       if (infoEl) infoEl.textContent = t('noCaptionsHint', lang);
       genBtn.disabled = true;
       renderDetectButton(true);
       return;
     }
+
+    stopDomCollection();
     const translateLabel = selectedTrack.translateTo ? ` → ${selectedTrack.translateTo}` : '';
     const trackName = selectedTrack.name || selectedTrack.languageCode || t('autoCaption', lang);
-    const kindLabel = selectedTrack.kind === 'dom' ? 'DOM' : (selectedTrack.kind === 'asr' ? t('autoCaption', lang) : t('manualCaption', lang));
+    const kindLabel = selectedTrack.kind === 'asr' ? t('autoCaption', lang) : t('manualCaption', lang);
     const label = `${trackName}${translateLabel} · ${kindLabel}`;
     setStatusLine(label);
     if (infoEl) infoEl.textContent = t('autoTranscript', lang).replace('{n}', data.count.toLocaleString());
@@ -269,15 +366,18 @@
   }
 
   async function onGenerate() {
-    if (!selectedTrack || !selectedTrack._text) {
+    let transcript = selectedTrack && selectedTrack._text;
+    if (!transcript) transcript = getCollectedText();
+    if (!transcript) {
       await refreshCaptions();
-      if (!selectedTrack || !selectedTrack._text) return;
+      transcript = (selectedTrack && selectedTrack._text) || getCollectedText();
+      if (!transcript) return;
     }
     setStatus(t('analyzing', lang));
     try {
       const result = await chrome.runtime.sendMessage({
         type: 'START_ANALYSIS',
-        payload: { transcript: selectedTrack._text, videoTitle: currentTitle }
+        payload: { transcript, videoTitle: currentTitle }
       });
       if (result.ok) {
         renderResult(result.result);
@@ -332,6 +432,10 @@
     if (event.data.type === 'VIDEO_META') {
       currentVideoId = event.data.payload.videoId;
       currentTitle = event.data.payload.title;
+      // Reset DOM collector for each new video.
+      stopDomCollection();
+      resetDomCollector();
+      selectedTrack = null;
     } else if (event.data.type === 'VIDEO_CAPTIONS') {
       captionTracks = event.data.payload.tracks || [];
       pendingCaptions = false;

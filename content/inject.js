@@ -34,7 +34,17 @@
       tracks = extractTracks(list);
     } catch (e) { /* ignore */ }
 
-    // Fallback: scan all inline <script> tags for a captionTracks JSON block.
+    // Fallback 1: legacy ytplayer.config.args.player_response
+    if (!tracks.length) {
+      try {
+        const pr = window.ytplayer && window.ytplayer.config && window.ytplayer.config.args && window.ytplayer.config.args.player_response;
+        const data = pr && JSON.parse(pr);
+        const list = data && data.captions && data.captions.playerCaptionsTracklistRenderer;
+        tracks = extractTracks(list);
+      } catch (e) { /* ignore */ }
+    }
+
+    // Fallback 2: scan all inline <script> tags for a captionTracks JSON block.
     if (!tracks.length) {
       tracks = extractTracksFromScripts();
     }
