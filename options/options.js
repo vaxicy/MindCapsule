@@ -1,6 +1,6 @@
 (function () {
   const { STORAGE_KEYS } = window.MC_STORAGE_KEYS;
-  const { DEFAULTS, PROVIDERS, SILICONFLOW_ENDPOINT, SILICONFLOW_DEFAULT_MODEL } = window.MC_CONSTANTS;
+  const { DEFAULTS, PROVIDERS, SILICONFLOW_ENDPOINT, SILICONFLOW_DEFAULT_MODEL, OPENAI_ENDPOINT, OPENAI_DEFAULT_MODEL } = window.MC_CONSTANTS;
   const $ = (sel) => document.querySelector(sel);
 
   const els = {
@@ -36,7 +36,9 @@
       els.modelField.hidden = true;
     } else {
       els.modelField.hidden = false;
-      els.modelHint.textContent = window.MC_T('siliconFlowModel', window.MC_LANG()) + ': ' + SILICONFLOW_DEFAULT_MODEL;
+      const hintKey = els.provider.value === PROVIDERS.OPENAI ? 'openAIModel' : 'siliconFlowModel';
+      const defaultModel = els.provider.value === PROVIDERS.OPENAI ? OPENAI_DEFAULT_MODEL : SILICONFLOW_DEFAULT_MODEL;
+      els.modelHint.textContent = window.MC_T(hintKey, window.MC_LANG()) + ': ' + defaultModel;
     }
   }
 
@@ -46,19 +48,24 @@
     els.provider.value = settings.provider || DEFAULTS.provider;
     els.apiKey.value = settings.apiKey || '';
     els.endpoint.value = settings.endpoint || '';
-    els.model.value = settings.model || SILICONFLOW_DEFAULT_MODEL;
+    const defaultModel = els.provider.value === PROVIDERS.OPENAI ? OPENAI_DEFAULT_MODEL : SILICONFLOW_DEFAULT_MODEL;
+    els.model.value = settings.model || defaultModel;
     els.customModel.value = settings.customModel || '';
     updateUI();
   }
 
   async function saveSettings(e) {
     e.preventDefault();
-    const isCustom = els.provider.value === PROVIDERS.CUSTOM_OPENAI;
+    const provider = els.provider.value;
+    const isCustom = provider === PROVIDERS.CUSTOM_OPENAI;
+    let endpoint = SILICONFLOW_ENDPOINT;
+    if (provider === PROVIDERS.OPENAI) endpoint = OPENAI_ENDPOINT;
+    else if (isCustom) endpoint = els.endpoint.value.trim().replace(/\/$/, '');
     const settings = {
-      provider: els.provider.value,
+      provider,
       apiKey: els.apiKey.value.trim(),
-      endpoint: isCustom ? els.endpoint.value.trim().replace(/\/$/, '') : SILICONFLOW_ENDPOINT,
-      model: isCustom ? '' : (els.model.value.trim() || SILICONFLOW_DEFAULT_MODEL),
+      endpoint,
+      model: isCustom ? '' : (els.model.value.trim() || (provider === PROVIDERS.OPENAI ? OPENAI_DEFAULT_MODEL : SILICONFLOW_DEFAULT_MODEL)),
       customModel: isCustom ? (els.customModel.value.trim() || '') : ''
     };
 

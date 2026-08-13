@@ -1,7 +1,7 @@
 // Unified AI service for SiliconFlow OpenAI-compatible and custom OpenAI endpoints.
 // API key is read from chrome.storage.local; never hard-coded.
 (function () {
-  const { PROVIDERS, SILICONFLOW_ENDPOINT, SILICONFLOW_DEFAULT_MODEL } = window.MC_CONSTANTS;
+  const { PROVIDERS, SILICONFLOW_ENDPOINT, SILICONFLOW_DEFAULT_MODEL, OPENAI_ENDPOINT, OPENAI_DEFAULT_MODEL } = window.MC_CONSTANTS;
 
   async function getSettings() {
     const keys = window.MC_STORAGE_KEYS;
@@ -13,12 +13,18 @@
     if (settings.provider === PROVIDERS.CUSTOM_OPENAI) {
       return (settings.endpoint || '').replace(/\/$/, '');
     }
+    if (settings.provider === PROVIDERS.OPENAI) {
+      return OPENAI_ENDPOINT;
+    }
     return SILICONFLOW_ENDPOINT;
   }
 
   function buildModel(settings) {
     if (settings.provider === PROVIDERS.CUSTOM_OPENAI) {
       return settings.customModel || settings.model || '';
+    }
+    if (settings.provider === PROVIDERS.OPENAI) {
+      return settings.model || OPENAI_DEFAULT_MODEL;
     }
     return settings.model || SILICONFLOW_DEFAULT_MODEL;
   }

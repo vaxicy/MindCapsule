@@ -38,13 +38,19 @@ async function handleAnalysis(payload) {
   const settings = res[settingsKey] || {};
 
   const { MC_CONSTANTS } = self;
+  const openaiEndpoint = MC_CONSTANTS ? MC_CONSTANTS.OPENAI_ENDPOINT : 'https://api.openai.com/v1';
+  const openaiDefaultModel = MC_CONSTANTS ? MC_CONSTANTS.OPENAI_DEFAULT_MODEL : 'gpt-4o-mini';
   const endpoint = settings.provider === 'custom_openai'
     ? settings.endpoint
-    : (MC_CONSTANTS ? MC_CONSTANTS.SILICONFLOW_ENDPOINT : 'https://api.siliconflow.cn/v1');
+    : settings.provider === 'openai'
+      ? openaiEndpoint
+      : (MC_CONSTANTS ? MC_CONSTANTS.SILICONFLOW_ENDPOINT : 'https://api.siliconflow.cn/v1');
 
   const model = settings.provider === 'custom_openai'
     ? (settings.customModel || settings.model)
-    : (settings.model || (MC_CONSTANTS ? MC_CONSTANTS.SILICONFLOW_DEFAULT_MODEL : 'Qwen/Qwen2.5-72B-Instruct'));
+    : settings.provider === 'openai'
+      ? (settings.model || openaiDefaultModel)
+      : (settings.model || (MC_CONSTANTS ? MC_CONSTANTS.SILICONFLOW_DEFAULT_MODEL : 'Qwen/Qwen2.5-72B-Instruct'));
 
   if (!settings.apiKey) throw new Error('API_KEY_MISSING');
   if (!endpoint) throw new Error('ENDPOINT_MISSING');
