@@ -1,0 +1,18 @@
+{
+  "ext_name": {
+    "message": "MindCapsule",
+    "description": "Extension name shown in store and toolbar"
+  },
+  "ext_short_name": {
+    "message": "MindCapsule",
+    "description": "Short extension name"
+  },
+  "ext_description": {
+    "message": "Turn YouTube videos into structured knowledge capsules with AI.",
+    "description": "Store listing description"
+  },
+  "action_title": {
+    "message": "MindCapsule - YouTube learning assistant",
+    "description": "Toolbar tooltip"
+  }
+}

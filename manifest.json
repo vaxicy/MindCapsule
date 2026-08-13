@@ -1,0 +1,66 @@
+{
+  "manifest_version": 3,
+  "name": "__MSG_ext_name__",
+  "short_name": "__MSG_ext_short_name__",
+  "description": "__MSG_ext_description__",
+  "version": "1.0.0",
+  "default_locale": "en",
+  "permissions": [
+    "storage",
+    "alarms",
+    "activeTab"
+  ],
+  "host_permissions": [
+    "https://www.youtube.com/*",
+    "https://*.youtube.com/*",
+    "https://api.siliconflow.cn/*",
+    "https://*/*"
+  ],
+  "background": {
+    "service_worker": "background/service-worker.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.youtube.com/*",
+        "https://*.youtube.com/*"
+      ],
+      "js": [
+        "shared/storage-keys.js",
+        "shared/constants.js",
+        "shared/i18n.js",
+        "content/youtube-sidebar.js"
+      ],
+      "css": [
+        "content/sidebar.css"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_title": "__MSG_action_title__",
+    "default_icon": {
+      "16": "store-assets/icon16.png",
+      "48": "store-assets/icon48.png",
+      "128": "store-assets/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "store-assets/icon16.png",
+    "48": "store-assets/icon48.png",
+    "128": "store-assets/icon128.png"
+  },
+  "options_page": "options/options.html",
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "content/inject.js"
+      ],
+      "matches": [
+        "https://www.youtube.com/*",
+        "https://*.youtube.com/*"
+      ]
+    }
+  ]
+}

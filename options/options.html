@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MindCapsule Settings</title>
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <div class="mc-options">
+    <header class="mc-header">
+      <img src="../store-assets/icon48.png" alt="MindCapsule" class="mc-logo" id="logo">
+      <h1 data-i18n="settingsTitle">MindCapsule 设置</h1>
+    </header>
+
+    <form id="settingsForm" class="mc-form">
+      <div class="mc-field">
+        <label for="provider" data-i18n="provider">AI 服务商</label>
+        <select id="provider" name="provider">
+          <option value="siliconflow" data-i18n="siliconFlow">硅基流动</option>
+          <option value="custom_openai" data-i18n="customOpenAI">OpenAI 兼容接口</option>
+        </select>
+      </div>
+
+      <div class="mc-field">
+        <label for="apiKey" data-i18n="apiKey">API Key</label>
+        <input type="password" id="apiKey" name="apiKey" placeholder="sk-..." autocomplete="off">
+        <p class="mc-hint">密钥仅保存在本地，不会上传或共享。</p>
+      </div>
+
+      <div class="mc-field" id="endpointField">
+        <label for="endpoint" data-i18n="endpoint">接口地址</label>
+        <input type="url" id="endpoint" name="endpoint" placeholder="https://api.example.com/v1">
+      </div>
+
+      <div class="mc-field" id="modelField">
+        <label for="model" data-i18n="model">模型</label>
+        <input type="text" id="model" name="model" placeholder="Qwen/Qwen2.5-72B-Instruct">
+        <p class="mc-hint" id="modelHint">硅基流动默认模型：Qwen/Qwen2.5-72B-Instruct</p>
+      </div>
+
+      <div class="mc-field" id="customModelField" hidden>
+        <label for="customModel" data-i18n="customModel">自定义模型</label>
+        <input type="text" id="customModel" name="customModel" placeholder="gpt-4o-mini">
+      </div>
+
+      <div class="mc-actions">
+        <button type="submit" class="mc-btn mc-btn-primary" data-i18n="save">保存设置</button>
+        <span id="saveStatus" class="mc-status"></span>
+      </div>
+    </form>
+  </div>
+
+  <script src="../shared/storage-keys.js"></script>
+  <script src="../shared/constants.js"></script>
+  <script src="../shared/i18n.js"></script>
+  <script src="options.js"></script>
+</body>
+</html>

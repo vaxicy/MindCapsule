@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MindCapsule</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="mc-popup">
+    <header class="mc-popup-header">
+      <img src="../store-assets/icon48.png" alt="" class="mc-popup-logo">
+      <div>
+        <h1 class="mc-popup-title">MindCapsule</h1>
+        <p class="mc-popup-version" id="versionLabel">MindCapsule</p>
+      </div>
+    </header>
+
+    <main class="mc-popup-body">
+      <p class="mc-popup-desc" data-i18n="ext_description">用 AI 把 YouTube 长视频变成结构化知识胶囊。</p>
+      <button id="openSettings" class="mc-btn mc-btn-primary" data-i18n="openSettings">打开设置</button>
+    </main>
+  </div>
+
+  <script src="../shared/storage-keys.js"></script>
+  <script src="../shared/constants.js"></script>
+  <script src="../shared/i18n.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

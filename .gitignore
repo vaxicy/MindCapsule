@@ -1,0 +1,8 @@
+.codebuddy/
+node_modules/
+*.log
+.DS_Store
+Thumbs.db
+*.tmp
+*.bak
+scripts/icon_candidates/*.png

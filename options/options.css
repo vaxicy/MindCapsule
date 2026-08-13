@@ -1,0 +1,136 @@
+:root {
+  --bg: #0f0f0f;
+  --surface: #1a1a1a;
+  --border: #2a2a2a;
+  --text: #f5f5f5;
+  --sub: #a0a0a0;
+  --accent: #7c5cff;
+  --accent-hover: #9574ff;
+  --danger: #ff5c5c;
+  --radius: 12px;
+  --shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+.mc-options {
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 40px 24px;
+}
+
+.mc-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 32px;
+}
+
+.mc-logo {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+}
+
+.mc-header h1 {
+  font-size: 22px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.mc-form {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  box-shadow: var(--shadow);
+}
+
+.mc-field {
+  margin-bottom: 20px;
+}
+
+.mc-field label {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 8px;
+  color: var(--text);
+}
+
+.mc-field input,
+.mc-field select {
+  width: 100%;
+  padding: 11px 14px;
+  background: #111;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.mc-field input:focus,
+.mc-field select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(124, 92, 255, 0.2);
+}
+
+.mc-hint {
+  font-size: 12px;
+  color: var(--sub);
+  margin: 6px 0 0;
+}
+
+.mc-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 28px;
+}
+
+.mc-btn {
+  padding: 11px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.05s;
+}
+
+.mc-btn-primary {
+  background: var(--accent);
+  color: #fff;
+}
+
+.mc-btn-primary:hover {
+  background: var(--accent-hover);
+}
+
+.mc-btn-primary:active {
+  transform: translateY(1px);
+}
+
+.mc-status {
+  font-size: 14px;
+  color: #4ade80;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.mc-status.visible {
+  opacity: 1;
+}
