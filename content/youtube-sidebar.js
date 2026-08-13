@@ -131,6 +131,7 @@
       </div>
       <div class="mc-panel-body">
         <div id="mc-caption-info" class="mc-caption-info"></div>
+        <div id="mc-caption-tip" class="mc-caption-tip">${t('captionTip', lang)}</div>
         <button id="mc-generate" class="mc-generate-btn">${t('generate', lang)}</button>
         <div id="mc-status" class="mc-status"></div>
         <div id="mc-result" class="mc-result" hidden></div>
@@ -245,6 +246,8 @@
     if (dlBtn) dlBtn.textContent = t('downloadMarkdown', lang);
     const redetect = document.getElementById('mc-redetect');
     if (redetect) redetect.textContent = t('redetectCaptions', lang);
+    const tip = document.getElementById('mc-caption-tip');
+    if (tip) tip.textContent = t('captionTip', lang);
   }
 
   function setStatus(text) {

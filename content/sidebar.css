@@ -123,8 +123,15 @@
   border: 1px solid #2a2a2a;
   border-radius: 8px;
   padding: 8px 10px;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
   line-height: 1.5;
+}
+
+.mc-caption-tip {
+  font-size: 11px;
+  color: #7c8288;
+  line-height: 1.5;
+  margin-bottom: 12px;
 }
 
 .mc-generate-btn {

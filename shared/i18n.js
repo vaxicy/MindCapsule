@@ -49,7 +49,8 @@ const I18N = Object.freeze({
     copyMarkdown: 'Copy Markdown',
     downloadMarkdown: 'Download .md',
     exportFailed: 'Export failed',
-    langSettings: 'Language settings'
+    langSettings: 'Language settings',
+    captionTip: 'Prefer English (auto-generated) captions. If none are detected, switch YouTube captions to English (auto-generated).'
   },
   zh: {
     settingsTitle: 'MindCapsule 设置',
@@ -100,7 +101,8 @@ const I18N = Object.freeze({
     copyMarkdown: '复制 Markdown',
     downloadMarkdown: '下载 .md',
     exportFailed: '导出失败',
-    langSettings: '语言设置'
+    langSettings: '语言设置',
+    captionTip: '优先检测英语（自动生成）字幕；如果检测不到字幕，请把 YouTube 字幕切换成英语（自动生成）字幕。'
   }
 });
 

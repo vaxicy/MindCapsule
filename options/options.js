@@ -30,17 +30,31 @@
     });
   }
 
-  function updateUI() {
-    const isCustom = els.provider.value === PROVIDERS.CUSTOM_OPENAI;
+  function defaultModelFor(provider) {
+    if (provider === PROVIDERS.OPENAI) return OPENAI_DEFAULT_MODEL;
+    if (provider === PROVIDERS.SILICONFLOW) return SILICONFLOW_DEFAULT_MODEL;
+    return '';
+  }
+
+  function updateUI(prevProvider) {
+    const provider = els.provider.value;
+    const isCustom = provider === PROVIDERS.CUSTOM_OPENAI;
     els.endpointField.hidden = !isCustom;
     els.customModelField.hidden = !isCustom;
     if (isCustom) {
       els.modelField.hidden = true;
     } else {
       els.modelField.hidden = false;
-      const hintKey = els.provider.value === PROVIDERS.OPENAI ? 'openAIModel' : 'siliconFlowModel';
-      const defaultModel = els.provider.value === PROVIDERS.OPENAI ? OPENAI_DEFAULT_MODEL : SILICONFLOW_DEFAULT_MODEL;
+      const hintKey = provider === PROVIDERS.OPENAI ? 'openAIModel' : 'siliconFlowModel';
+      const defaultModel = defaultModelFor(provider);
       els.modelHint.textContent = window.MC_T(hintKey, window.MC_LANG()) + ': ' + defaultModel;
+      if (prevProvider && provider !== prevProvider) {
+        const prevDefault = defaultModelFor(prevProvider);
+        const current = els.model.value.trim();
+        if (!current || current === prevDefault) {
+          els.model.value = defaultModel;
+        }
+      }
     }
   }
 
@@ -58,33 +72,67 @@
     updateUI();
   }
 
-  async function saveSettings(e) {
-    e.preventDefault();
+  function collectSettings() {
     const provider = els.provider.value;
     const isCustom = provider === PROVIDERS.CUSTOM_OPENAI;
     let endpoint = SILICONFLOW_ENDPOINT;
     if (provider === PROVIDERS.OPENAI) endpoint = OPENAI_ENDPOINT;
     else if (isCustom) endpoint = els.endpoint.value.trim().replace(/\/$/, '');
-    const settings = {
+    return {
       uiLang: els.uiLang.value,
       outputLang: els.outputLang.value,
       provider,
       apiKey: els.apiKey.value.trim(),
       endpoint,
-      model: isCustom ? '' : (els.model.value.trim() || (provider === PROVIDERS.OPENAI ? OPENAI_DEFAULT_MODEL : SILICONFLOW_DEFAULT_MODEL)),
+      model: isCustom ? '' : (els.model.value.trim() || defaultModelFor(provider)),
       customModel: isCustom ? (els.customModel.value.trim() || '') : ''
     };
+  }
 
-    await chrome.storage.local.set({ [STORAGE_KEYS.SETTINGS]: settings });
-    els.saveStatus.textContent = window.MC_T('saved', window.MC_LANG());
-    els.saveStatus.classList.add('visible');
-    setTimeout(() => els.saveStatus.classList.remove('visible'), 2000);
+  async function persistSettings(showTip = true) {
+    await chrome.storage.local.set({ [STORAGE_KEYS.SETTINGS]: collectSettings() });
+    if (showTip) {
+      els.saveStatus.textContent = window.MC_T('saved', window.MC_LANG());
+      els.saveStatus.classList.add('visible');
+      setTimeout(() => els.saveStatus.classList.remove('visible'), 2000);
+    }
+  }
+
+  async function saveSettings(e) {
+    e.preventDefault();
+    await persistSettings(true);
+  }
+
+  function debounce(fn, wait) {
+    let t;
+    return (...args) => {
+      clearTimeout(t);
+      t = setTimeout(() => fn(...args), wait);
+    };
+  }
+
+  const autoSave = debounce(() => persistSettings(true), 500);
+
+  function attachAutoSave() {
+    [els.uiLang, els.outputLang].forEach((el) => {
+      el.addEventListener('change', () => persistSettings(true));
+    });
+    els.provider.addEventListener('change', async () => {
+      const saved = await chrome.storage.local.get(STORAGE_KEYS.SETTINGS);
+      const prevProvider = saved[STORAGE_KEYS.SETTINGS]?.provider || els.provider.value;
+      updateUI(prevProvider);
+      await persistSettings(true);
+    });
+    [els.apiKey, els.endpoint, els.model, els.customModel].forEach((el) => {
+      el.addEventListener('input', autoSave);
+    });
   }
 
   applyStaticI18n();
   updateUI();           // avoid flash of old UI before settings load
-  loadSettings();
-  els.provider.addEventListener('change', updateUI);
+  loadSettings().then(() => {
+    attachAutoSave();
+  });
   els.form.addEventListener('submit', saveSettings);
 
   // Keep the UI-language select in sync when changed elsewhere (e.g. the
