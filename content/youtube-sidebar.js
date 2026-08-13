@@ -14,6 +14,7 @@
   let collapsed = false;
   let generatedVideoIds = new Set();   // de-dupe auto-generation per video
   let autoGenerateEnabled = true;
+  let fullTranscriptReady = false;     // true once a complete transcript was fetched from a formal track
 
   const STORAGE_KEYS = window.MC_STORAGE_KEYS;
 
@@ -84,11 +85,16 @@
 
   async function fetchTranscript(track) {
     if (!track || !track.baseUrl) return null;
-    let url = track.baseUrl + '&fmt=json3';
+    // Build the full transcript URL from the track baseUrl. Use the URL object
+    // so query params are appended correctly regardless of whether baseUrl
+    // already ends with '&' or '?'. fmt=json3 returns the COMPLETE transcript
+    // (all events with timestamps) in one request — no need to wait for playback.
+    const url = new URL(track.baseUrl);
+    url.searchParams.set('fmt', 'json3');
     if (track.translateTo) {
-      url += '&tlang=' + encodeURIComponent(track.translateTo);
+      url.searchParams.set('tlang', track.translateTo);
     }
-    const res = await fetch(url, { credentials: 'include' });
+    const res = await fetch(url.toString(), { credentials: 'include' });
     if (!res.ok) return null;
     const data = await res.json();
     const events = data.events || [];
@@ -242,10 +248,13 @@
       renderDetectButton(true);
       return;
     }
+    // Full transcript obtained from the formal caption track in one request;
+    // mark ready so on-screen (DOM) caption accumulation stops overriding it.
+    fullTranscriptReady = true;
 
-    const translateLabel = selectedTrack.translateTo ? ` → ${selectedTrack.translateTo}` : '';
-    const trackName = selectedTrack.name || selectedTrack.languageCode || t('autoCaption', lang);
-    const kindLabel = selectedTrack.kind === 'asr' ? t('autoCaption', lang) : t('manualCaption', lang);
+    const translateLabel = selectedTrack && selectedTrack.translateTo ? ` → ${selectedTrack.translateTo}` : '';
+    const trackName = (selectedTrack && (selectedTrack.name || selectedTrack.languageCode)) || t('autoCaption', lang);
+    const kindLabel = selectedTrack && selectedTrack.kind === 'asr' ? t('autoCaption', lang) : t('manualCaption', lang);
     const label = `${trackName}${translateLabel} · ${kindLabel}`;
     setStatusLine(label);
     if (infoEl) infoEl.textContent = t('autoTranscript', lang).replace('{n}', data.count.toLocaleString());
@@ -271,6 +280,7 @@
     btn.addEventListener('click', () => {
       captionTracks = [];
       pendingCaptions = true;
+      fullTranscriptReady = false;
       setStatusLine(t('redetectCaptions', lang) + '…');
       // Ask inject.js to re-read captions (it keeps polling up to ~7s on its own).
       window.postMessage({ source: 'MindCapsule', type: 'REQUEST_CAPTIONS' }, '*');
@@ -353,6 +363,7 @@
       selectedTrack = null;
       captionTracks = [];
       domCaptionText = '';
+      fullTranscriptReady = false;
       generatedVideoIds.delete(currentVideoId);
     } else if (event.data.type === 'VIDEO_CAPTIONS') {
       captionTracks = event.data.payload.tracks || [];
@@ -360,6 +371,10 @@
       if (panelRoot) refreshCaptions();
       else pendingCaptions = true; // refresh once panel is built
     } else if (event.data.type === 'VIDEO_CAPTION_TEXT') {
+      // Once a complete transcript has been fetched from a formal track, ignore
+      // the on-screen caption accumulation so it doesn't re-trigger refreshes
+      // while the video plays (avoids the "capturing as it plays" feeling).
+      if (fullTranscriptReady) return;
       const text = event.data.payload.text || '';
       if (text.length > domCaptionText.length) domCaptionText = text;
       pendingCaptions = false;
