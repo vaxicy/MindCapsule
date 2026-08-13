@@ -6,3 +6,5 @@ Thumbs.db
 *.tmp
 *.bak
 scripts/icon_candidates/*.png
+scripts/icon_candidates/preview/
+generated-images/
