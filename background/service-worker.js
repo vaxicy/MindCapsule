@@ -56,9 +56,15 @@ async function handleAnalysis(payload) {
   if (!endpoint) throw new Error('ENDPOINT_MISSING');
   if (!model) throw new Error('MODEL_MISSING');
 
+  // Determine output language instruction based on settings.
+  const outputLang = settings.outputLang || 'auto';
+  let langInstruction = 'Respond in the same language as the transcript.';
+  if (outputLang === 'zh') langInstruction = 'Respond in Chinese (中文).';
+  else if (outputLang === 'en') langInstruction = 'Respond in English.';
+
   const systemPrompt = `You are MindCapsule, a learning assistant that converts YouTube transcripts into structured knowledge notes.
 Always respond in JSON format with exactly these keys: summary, keyInsights (array), timeline (array of {time, content}), actionItems (array).
-Respond in the same language as the transcript.`;
+${langInstruction}`;
 
   const userPrompt = `Video title: ${videoTitle || 'Untitled'}\n\nTranscript:\n${transcript}\n\nConvert this into structured notes with the four sections above.`;
 

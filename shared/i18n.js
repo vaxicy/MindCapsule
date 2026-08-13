@@ -40,7 +40,17 @@ const I18N = Object.freeze({
     about: 'About',
     version: 'Version',
     openSettings: 'Open Settings',
-    ext_description: 'Turn YouTube videos into structured knowledge capsules with AI.'
+    ext_description: 'Turn YouTube videos into structured knowledge capsules with AI.',
+    uiLang: 'Interface language',
+    uiLangZh: 'Chinese',
+    uiLangEn: 'English',
+    outputLang: 'Generated language',
+    outputLangAuto: 'Follow video',
+    outputLangZh: 'Chinese',
+    outputLangEn: 'English',
+    autoGenerate: 'Auto-generate notes on video open',
+    autoGenerating: 'Auto-detecting captions and generating notes...',
+    langSettings: 'Language settings'
   },
   zh: {
     settingsTitle: 'MindCapsule 设置',
@@ -82,17 +92,45 @@ const I18N = Object.freeze({
     about: '关于',
     version: '版本',
     openSettings: '打开设置',
-    ext_description: '用 AI 把 YouTube 长视频变成结构化知识胶囊。'
+    ext_description: '用 AI 把 YouTube 长视频变成结构化知识胶囊。',
+    uiLang: '界面语言',
+    uiLangZh: '中文',
+    uiLangEn: 'English',
+    outputLang: '生成语言',
+    outputLangAuto: '跟随视频',
+    outputLangZh: '中文',
+    outputLangEn: 'English',
+    autoGenerate: '进入视频时自动生成笔记',
+    autoGenerating: '正在自动识别字幕并生成笔记...',
+    langSettings: '语言设置'
   }
 });
+
+// Asynchronously read the stored UI language from settings.
+// Resolves to 'zh' | 'en'. Falls back to browser language if not set.
+function loadStoredLang() {
+  return new Promise((resolve) => {
+    if (typeof chrome === 'undefined' || !chrome.storage) {
+      resolve(getLang());
+      return;
+    }
+    const keys = window.MC_STORAGE_KEYS || { SETTINGS: 'mc_settings' };
+    chrome.storage.local.get(keys.SETTINGS, (res) => {
+      const settings = (res && res[keys.SETTINGS]) || {};
+      if (settings.uiLang === 'zh' || settings.uiLang === 'en') {
+        resolve(settings.uiLang);
+      } else {
+        const browser = (navigator.language || 'en').toLowerCase();
+        resolve(browser.startsWith('zh') ? 'zh' : 'en');
+      }
+    });
+  });
+}
 
 function getLang() {
   const url = new URL(window.location.href);
   const urlLang = url.searchParams.get('lang');
   if (urlLang === 'zh' || urlLang === 'en') return urlLang;
-  const stored = typeof chrome !== 'undefined' && chrome.storage
-    ? null // will be loaded asynchronously
-    : null;
   const browser = (navigator.language || 'en').toLowerCase();
   return browser.startsWith('zh') ? 'zh' : 'en';
 }
@@ -106,7 +144,8 @@ if (typeof window !== 'undefined') {
   window.MC_I18N = I18N;
   window.MC_T = t;
   window.MC_LANG = getLang;
+  window.MC_LOAD_LANG = loadStoredLang;
 }
 if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { I18N, t, getLang };
+  module.exports = { I18N, t, getLang, loadStoredLang };
 }

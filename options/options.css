@@ -91,6 +91,40 @@ body {
   margin: 6px 0 0;
 }
 
+.mc-fieldset {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px 18px 20px;
+  margin: 0 0 24px;
+}
+
+.mc-fieldset legend {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--sub);
+  padding: 0 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.mc-field-inline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.mc-field-inline label {
+  margin-bottom: 0;
+}
+
+.mc-field-inline input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent);
+  flex: none;
+}
+
 .mc-actions {
   display: flex;
   align-items: center;

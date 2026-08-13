@@ -5,6 +5,9 @@
 
   const els = {
     form: $('#settingsForm'),
+    uiLang: $('#uiLang'),
+    outputLang: $('#outputLang'),
+    autoGenerate: $('#autoGenerate'),
     provider: $('#provider'),
     apiKey: $('#apiKey'),
     endpoint: $('#endpoint'),
@@ -45,6 +48,9 @@
   async function loadSettings() {
     const data = await chrome.storage.local.get(STORAGE_KEYS.SETTINGS);
     const settings = data[STORAGE_KEYS.SETTINGS] || {};
+    els.uiLang.value = settings.uiLang || DEFAULTS.uiLang;
+    els.outputLang.value = settings.outputLang || DEFAULTS.outputLang;
+    els.autoGenerate.checked = settings.autoGenerate !== undefined ? !!settings.autoGenerate : DEFAULTS.autoGenerate;
     els.provider.value = settings.provider || DEFAULTS.provider;
     els.apiKey.value = settings.apiKey || '';
     els.endpoint.value = settings.endpoint || '';
@@ -62,6 +68,9 @@
     if (provider === PROVIDERS.OPENAI) endpoint = OPENAI_ENDPOINT;
     else if (isCustom) endpoint = els.endpoint.value.trim().replace(/\/$/, '');
     const settings = {
+      uiLang: els.uiLang.value,
+      outputLang: els.outputLang.value,
+      autoGenerate: els.autoGenerate.checked,
       provider,
       apiKey: els.apiKey.value.trim(),
       endpoint,

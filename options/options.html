@@ -13,6 +13,29 @@
     </header>
 
     <form id="settingsForm" class="mc-form">
+      <fieldset class="mc-fieldset">
+        <legend data-i18n="langSettings">语言设置</legend>
+        <div class="mc-field">
+          <label for="uiLang" data-i18n="uiLang">界面语言</label>
+          <select id="uiLang" name="uiLang">
+            <option value="zh" data-i18n="uiLangZh">中文</option>
+            <option value="en" data-i18n="uiLangEn">English</option>
+          </select>
+        </div>
+        <div class="mc-field">
+          <label for="outputLang" data-i18n="outputLang">生成语言</label>
+          <select id="outputLang" name="outputLang">
+            <option value="auto" data-i18n="outputLangAuto">跟随视频</option>
+            <option value="zh" data-i18n="outputLangZh">中文</option>
+            <option value="en" data-i18n="outputLangEn">English</option>
+          </select>
+        </div>
+        <div class="mc-field mc-field-inline">
+          <label for="autoGenerate" data-i18n="autoGenerate">进入视频时自动生成笔记</label>
+          <input type="checkbox" id="autoGenerate" name="autoGenerate">
+        </div>
+      </fieldset>
+
       <div class="mc-field">
         <label for="provider" data-i18n="provider">AI 服务商</label>
         <select id="provider" name="provider">

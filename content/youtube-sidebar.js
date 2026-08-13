@@ -1,7 +1,7 @@
 // Isolated-world content script: floating collapsible panel + auto caption fetch.
 (function () {
   const t = window.MC_T;
-  const lang = window.MC_LANG();
+  let lang = window.MC_LANG();
   const ICON_URL = chrome.runtime.getURL('store-assets/icon48.png');
   let currentVideoId = '';
   let currentTitle = '';
@@ -13,6 +13,8 @@
   let collapsed = false;
   let domCaptionCollector = null;
   let videoTimeListener = null;
+  let generatedVideoIds = new Set();   // de-dupe auto-generation per video
+  let autoGenerateEnabled = true;
 
   const STORAGE_KEYS = window.MC_STORAGE_KEYS;
 
@@ -261,6 +263,18 @@
     });
   }
 
+  // Re-apply translations to a built panel after UI language changes.
+  function applyI18nToPanel() {
+    const toggle = document.getElementById('mc-toggle');
+    if (toggle) {
+      toggle.title = collapsed ? t('expandPanel', lang) : t('collapsePanel', lang);
+    }
+    const genBtn = document.getElementById('mc-generate');
+    if (genBtn) genBtn.textContent = t('generate', lang);
+    const redetect = document.getElementById('mc-redetect');
+    if (redetect) redetect.textContent = t('redetectCaptions', lang);
+  }
+
   function setStatus(text) {
     const el = document.getElementById('mc-status');
     if (el) el.textContent = text;
@@ -297,6 +311,7 @@
         updateDomCollectionStatus();
         genBtn.disabled = false;
         renderDetectButton(false);
+        maybeAutoGenerate();
         return;
       }
       stopDomCollection();
@@ -319,6 +334,7 @@
         updateDomCollectionStatus();
         genBtn.disabled = false;
         renderDetectButton(false);
+        maybeAutoGenerate();
         return;
       }
       stopDomCollection();
@@ -339,6 +355,7 @@
     genBtn.disabled = false;
     selectedTrack._text = data.text;
     renderDetectButton(false);
+    maybeAutoGenerate();
   }
 
   function renderDetectButton(show) {
@@ -436,6 +453,7 @@
       stopDomCollection();
       resetDomCollector();
       selectedTrack = null;
+      generatedVideoIds.delete(currentVideoId);
     } else if (event.data.type === 'VIDEO_CAPTIONS') {
       captionTracks = event.data.payload.tracks || [];
       pendingCaptions = false;
@@ -444,7 +462,30 @@
     }
   }
 
+  // After captions are ready, auto-generate if enabled and not already done for this video.
+  async function maybeAutoGenerate() {
+    if (!autoGenerateEnabled) return;
+    if (!currentVideoId || generatedVideoIds.has(currentVideoId)) return;
+    const transcript = (selectedTrack && selectedTrack._text) || getCollectedText();
+    if (!transcript) return;
+    generatedVideoIds.add(currentVideoId);
+    setStatusLine(t('autoGenerating', lang));
+    await onGenerate();
+  }
+
   function init() {
+    // Apply stored UI language before building the panel.
+    window.MC_LOAD_LANG().then((stored) => {
+      lang = stored;
+      // Re-apply translations to the already-built panel, if any.
+      if (panelRoot) applyI18nToPanel();
+    });
+
+    chrome.storage.local.get({ mc_settings: null }, (res) => {
+      const s = res.mc_settings || {};
+      autoGenerateEnabled = s.autoGenerate !== undefined ? !!s.autoGenerate : true;
+    });
+
     const script = document.createElement('script');
     script.src = chrome.runtime.getURL('content/inject.js');
     script.onload = () => script.remove();
