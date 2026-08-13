@@ -8,10 +8,11 @@
   let panelRoot = null;
   let captionTracks = [];
   let selectedTrack = null;
+  let pendingCaptions = false;
   let panelPos = { right: 24, top: 90 };
   let collapsed = false;
 
-  const STORAGE_KEYS = window.MC_STORAGE_KEYS.STORAGE_KEYS;
+  const STORAGE_KEYS = window.MC_STORAGE_KEYS;
 
   // ---- position / collapse persistence ----
   function loadPanelState() {
@@ -31,26 +32,59 @@
   }
 
   // ---- caption selection ----
+  function getBrowserLangCode() {
+    return ((navigator.language || 'en').toLowerCase().split('-')[0]);
+  }
+
   function pickBestTrack(tracks) {
     if (!tracks || !tracks.length) return null;
-    const userLang = (navigator.language || 'en').toLowerCase();
-    const browserCode = userLang.split('-')[0];
-    // 1. user/browser preferred manual caption
-    let hit = tracks.find(tr => !tr.kind && tr.languageCode && tr.languageCode.toLowerCase().startsWith(browserCode));
+    const browserCode = getBrowserLangCode();
+    // Determine the video's original/primary language: YouTube lists it first,
+    // or we can infer from the first non-translation track. Prefer original-language
+    // text (not auto-translated) so we analyze the real source content.
+    const originalCode = (tracks[0] && tracks[0].languageCode) ? tracks[0].languageCode.toLowerCase() : '';
+
+    // 1. original-language manual caption (best: real source, human-written)
+    let hit = tracks.find(tr => !tr.kind && tr.languageCode && tr.languageCode.toLowerCase() === originalCode);
     if (hit) return hit;
-    // 2. any manual caption
-    hit = tracks.find(tr => !tr.kind);
+    // 2. original-language ASR (auto) caption — still the source language
+    hit = tracks.find(tr => tr.kind === 'asr' && tr.languageCode && tr.languageCode.toLowerCase() === originalCode);
     if (hit) return hit;
-    // 3. auto-generated fallback
+    // 3. any original-language track (fallback on code match)
+    hit = tracks.find(tr => tr.languageCode && tr.languageCode.toLowerCase() === originalCode);
+    if (hit) return hit;
+    // 4. browser-language manual caption
+    hit = tracks.find(tr => !tr.kind && tr.languageCode && tr.languageCode.toLowerCase().startsWith(browserCode));
+    if (hit) return hit;
+    // 5. browser-language ASR
     hit = tracks.find(tr => tr.kind === 'asr' && tr.languageCode && tr.languageCode.toLowerCase().startsWith(browserCode));
     if (hit) return hit;
-    // 4. first available
+    // 6. any manual caption
+    hit = tracks.find(tr => !tr.kind);
+    if (hit) return hit;
+    // 7. first available
     return tracks[0];
+  }
+
+  function getAutoTranslateLang() {
+    const userLang = (navigator.language || 'en').toLowerCase();
+    // YouTube uses zh-Hans / zh-Hant for Chinese auto-translation.
+    if (userLang.startsWith('zh-hant') || userLang === 'zh-tw' || userLang === 'zh-hk' || userLang === 'zh-mo') return 'zh-Hant';
+    if (userLang.startsWith('zh')) return 'zh-Hans';
+    return userLang;
+  }
+
+  function canAutoTranslate(track, targetLang) {
+    if (!track.translationLanguages || !track.translationLanguages.length) return false;
+    return track.translationLanguages.some(l => l.languageCode === targetLang);
   }
 
   async function fetchTranscript(track) {
     if (!track || !track.baseUrl) return null;
-    const url = track.baseUrl + '&fmt=json3';
+    let url = track.baseUrl + '&fmt=json3';
+    if (track.translateTo) {
+      url += '&tlang=' + encodeURIComponent(track.translateTo);
+    }
     const res = await fetch(url, { credentials: 'include' });
     if (!res.ok) return null;
     const data = await res.json();
@@ -68,6 +102,14 @@
       text += ' ';
     }
     return { text: text.trim(), count };
+  }
+
+  // Fallback: read currently visible caption segments from DOM.
+  function readDomCaptions() {
+    const segments = document.querySelectorAll('.ytp-caption-segment');
+    if (!segments.length) return null;
+    const text = Array.from(segments).map(s => s.textContent).join(' ').trim();
+    return text ? { text, count: text.length } : null;
   }
 
   // ---- panel build ----
@@ -153,25 +195,77 @@
     selectedTrack = pickBestTrack(captionTracks);
     const infoEl = document.getElementById('mc-caption-info');
     const genBtn = document.getElementById('mc-generate');
+
+    // Try auto-translation to browser language if no direct match.
+    if (selectedTrack) {
+      const browserCode = getBrowserLangCode();
+      const targetLang = getAutoTranslateLang();
+      const alreadyInLang = selectedTrack.languageCode && selectedTrack.languageCode.toLowerCase().startsWith(browserCode);
+      if (!alreadyInLang && canAutoTranslate(selectedTrack, targetLang)) {
+        selectedTrack = { ...selectedTrack, translateTo: targetLang };
+      }
+    }
+
     if (!selectedTrack) {
+      // Last-resort DOM fallback: only the currently visible subtitle segments.
+      const dom = readDomCaptions();
+      if (dom && dom.text) {
+        selectedTrack = { name: t('domOnlyTitle', lang), languageCode: getBrowserLangCode(), kind: 'dom', baseUrl: '', _text: dom.text };
+        setStatusLine(`${t('domOnlyTitle', lang)} · DOM`);
+        if (infoEl) infoEl.textContent = t('domOnlyHint', lang).replace('{n}', dom.count.toLocaleString());
+        genBtn.disabled = false;
+        renderDetectButton(false);
+        return;
+      }
       setStatusLine(t('noCaptions', lang));
       if (infoEl) infoEl.textContent = t('noCaptionsHint', lang);
       genBtn.disabled = true;
+      renderDetectButton(true);
       return;
     }
+
     setStatusLine(t('readingCaptions', lang));
     const data = await fetchTranscript(selectedTrack);
     if (!data || !data.text) {
       setStatusLine(t('noCaptions', lang));
       if (infoEl) infoEl.textContent = t('noCaptionsHint', lang);
       genBtn.disabled = true;
+      renderDetectButton(true);
       return;
     }
-    const label = `${selectedTrack.name || selectedTrack.languageCode} · ${selectedTrack.kind === 'asr' ? t('autoCaption', lang) : t('manualCaption', lang)}`;
+    const translateLabel = selectedTrack.translateTo ? ` → ${selectedTrack.translateTo}` : '';
+    const trackName = selectedTrack.name || selectedTrack.languageCode || t('autoCaption', lang);
+    const kindLabel = selectedTrack.kind === 'dom' ? 'DOM' : (selectedTrack.kind === 'asr' ? t('autoCaption', lang) : t('manualCaption', lang));
+    const label = `${trackName}${translateLabel} · ${kindLabel}`;
     setStatusLine(label);
     if (infoEl) infoEl.textContent = t('autoTranscript', lang).replace('{n}', data.count.toLocaleString());
     genBtn.disabled = false;
     selectedTrack._text = data.text;
+    renderDetectButton(false);
+  }
+
+  function renderDetectButton(show) {
+    const body = document.querySelector('.mc-panel-body');
+    if (!body) return;
+    let btn = document.getElementById('mc-redetect');
+    if (!show) {
+      if (btn) btn.remove();
+      return;
+    }
+    if (btn) return;
+    btn = document.createElement('button');
+    btn.id = 'mc-redetect';
+    btn.className = 'mc-detect-btn';
+    btn.textContent = t('redetectCaptions', lang);
+    btn.addEventListener('click', () => {
+      captionTracks = [];
+      pendingCaptions = true;
+      setStatusLine(t('redetectCaptions', lang) + '…');
+      // Ask inject.js to re-read captions.
+      window.postMessage({ source: 'MindCapsule', type: 'REQUEST_CAPTIONS' }, '*');
+      setTimeout(() => { if (pendingCaptions) refreshCaptions(); }, 1000);
+    });
+    body.appendChild(btn);
   }
 
   async function onGenerate() {
@@ -240,7 +334,9 @@
       currentTitle = event.data.payload.title;
     } else if (event.data.type === 'VIDEO_CAPTIONS') {
       captionTracks = event.data.payload.tracks || [];
+      pendingCaptions = false;
       if (panelRoot) refreshCaptions();
+      else pendingCaptions = true; // refresh once panel is built
     }
   }
 
@@ -256,7 +352,8 @@
       if (!document.getElementById('mindcapsule-panel')) {
         loadPanelState().then(() => {
           buildPanel();
-          refreshCaptions();
+          // Captions may have already arrived before panel built; refresh them now.
+          if (pendingCaptions || captionTracks.length) refreshCaptions();
         });
       }
       if (!document.getElementById('mindcapsule-panel')) {

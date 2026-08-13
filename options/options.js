@@ -1,5 +1,5 @@
 (function () {
-  const { STORAGE_KEYS } = window.MC_STORAGE_KEYS;
+  const STORAGE_KEYS = window.MC_STORAGE_KEYS;
   const { DEFAULTS, PROVIDERS, SILICONFLOW_ENDPOINT, SILICONFLOW_DEFAULT_MODEL, OPENAI_ENDPOINT, OPENAI_DEFAULT_MODEL } = window.MC_CONSTANTS;
   const $ = (sel) => document.querySelector(sel);
 
@@ -76,6 +76,7 @@
   }
 
   applyStaticI18n();
+  updateUI();           // avoid flash of old UI before settings load
   loadSettings();
   els.provider.addEventListener('change', updateUI);
   els.form.addEventListener('submit', saveSettings);

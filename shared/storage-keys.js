@@ -1,4 +1,5 @@
 // Centralized storage keys to avoid silent data loss across contexts.
+// Exposed as window.MC_STORAGE_KEYS = { SETTINGS: '...', ... }
 const STORAGE_KEYS = Object.freeze({
   SETTINGS: 'mc_settings',
   HISTORY: 'mc_history',

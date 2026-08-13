@@ -32,8 +32,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 async function handleAnalysis(payload) {
   const { transcript, videoTitle } = payload;
-  const { STORAGE_KEYS } = self.MC_STORAGE_KEYS || {};
-  const settingsKey = STORAGE_KEYS ? STORAGE_KEYS.SETTINGS : 'mc_settings';
+  const STORAGE_KEYS = self.MC_STORAGE_KEYS || {};
+  const settingsKey = STORAGE_KEYS.SETTINGS || 'mc_settings';
   const res = await chrome.storage.local.get(settingsKey);
   const settings = res[settingsKey] || {};
 
