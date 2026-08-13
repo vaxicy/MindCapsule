@@ -1,11 +1,11 @@
 :root {
-  --bg: #000000;
-  --surface: #111111;
-  --border: #222222;
-  --text: #ffffff;
-  --sub: #888888;
-  --accent: #ffffff;
-  --accent-hover: #d4d4d4;
+  --bg: #ffffff;
+  --surface: #f5f5f7;
+  --border: #e2e2e6;
+  --text: #111111;
+  --sub: #666666;
+  --accent: #111111;
+  --accent-hover: #333333;
   --radius: 12px;
 }
 
@@ -70,7 +70,7 @@ body {
 
 .mc-btn-primary {
   background: var(--accent);
-  color: #000000;
+  color: #ffffff;
 }
 
 .mc-btn-primary:hover {

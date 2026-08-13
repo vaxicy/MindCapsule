@@ -27,7 +27,8 @@ const I18N = Object.freeze({
     errorGenerate: 'Failed to generate notes. Please check your API Key and network.',
     about: 'About',
     version: 'Version',
-    openSettings: 'Open Settings'
+    openSettings: 'Open Settings',
+    ext_description: 'Turn YouTube videos into structured knowledge capsules with AI.'
   },
   zh: {
     settingsTitle: 'MindCapsule 设置',
@@ -56,7 +57,8 @@ const I18N = Object.freeze({
     errorGenerate: '生成笔记失败，请检查 API Key 和网络。',
     about: '关于',
     version: '版本',
-    openSettings: '打开设置'
+    openSettings: '打开设置',
+    ext_description: '用 AI 把 YouTube 长视频变成结构化知识胶囊。'
   }
 });
 
