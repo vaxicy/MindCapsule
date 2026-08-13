@@ -50,8 +50,8 @@ const I18N = Object.freeze({
     downloadMarkdown: 'Download .md',
     exportFailed: 'Export failed',
     langSettings: 'Language settings',
-    captionTip: 'Prefer English (auto-generated) captions. If none are detected, switch YouTube captions to English (auto-generated).',
-    captionSwitch: 'Current captions are not English (auto-generated). Tap to switch.'
+    captionTip: 'Prefer English (auto-generated) captions for best results.',
+    captionToggleHint: 'If no captions are detected yet, turn off and re-enable subtitles (CC) once in the YouTube player to trigger detection.'
   },
   zh: {
     settingsTitle: 'MindCapsule 设置',
@@ -103,8 +103,8 @@ const I18N = Object.freeze({
     downloadMarkdown: '下载 .md',
     exportFailed: '导出失败',
     langSettings: '语言设置',
-    captionTip: '优先检测英语（自动生成）字幕；如果检测不到字幕，请把 YouTube 字幕切换成英语（自动生成）字幕。',
-    captionSwitch: '当前字幕不是英语（自动生成），点击切换。'
+    captionTip: '建议使用英语（自动生成）字幕，识别效果最佳。',
+    captionToggleHint: '如果尚未检测到字幕，请在 YouTube 播放器里关闭一次字幕（CC）再重新打开，即可触发检测。'
   }
 });
 
