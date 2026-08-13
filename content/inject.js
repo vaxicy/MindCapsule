@@ -1,4 +1,4 @@
-// Runs in MAIN WORLD to read page-specific data (videoId, title) and post back.
+// Runs in MAIN WORLD to read page-specific data (videoId, title, captions) and post back.
 (function () {
   function readVideoMeta() {
     const url = new URL(window.location.href);
@@ -8,15 +8,34 @@
     window.postMessage({ source: 'MindCapsule', type: 'VIDEO_META', payload: { videoId, title } }, '*');
   }
 
-  // Send initial meta.
+  // Read available caption tracks from ytInitialPlayerResponse.
+  function readCaptions() {
+    let tracks = [];
+    try {
+      const data = window.ytInitialPlayerResponse;
+      const list = data && data.captions && data.captions.playerCaptionsTracklistRenderer;
+      if (list && Array.isArray(list.captionTracks)) {
+        tracks = list.captionTracks.map(tr => ({
+          baseUrl: tr.baseUrl || '',
+          name: (tr.name && tr.name.simpleText) || '',
+          languageCode: tr.languageCode || '',
+          kind: tr.kind || 'asr' // 'asr' = auto-generated
+        }));
+      }
+    } catch (e) { /* ignore */ }
+    window.postMessage({ source: 'MindCapsule', type: 'VIDEO_CAPTIONS', payload: { tracks } }, '*');
+  }
+
+  // Send initial meta + captions.
   readVideoMeta();
+  readCaptions();
 
   // Re-send on SPA navigation.
   let lastUrl = location.href;
   new MutationObserver(() => {
     if (location.href !== lastUrl) {
       lastUrl = location.href;
-      setTimeout(readVideoMeta, 800);
+      setTimeout(() => { readVideoMeta(); readCaptions(); }, 1200);
     }
   }).observe(document, { subtree: true, childList: true });
 })();

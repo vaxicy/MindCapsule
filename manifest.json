@@ -55,7 +55,10 @@
   "web_accessible_resources": [
     {
       "resources": [
-        "content/inject.js"
+        "content/inject.js",
+        "store-assets/icon16.png",
+        "store-assets/icon48.png",
+        "store-assets/icon128.png"
       ],
       "matches": [
         "https://www.youtube.com/*",

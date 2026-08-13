@@ -9,15 +9,7 @@
     });
   }
 
-  function updateVersionLabel() {
-    const el = $('#versionLabel');
-    if (!el) return;
-    const version = chrome.runtime?.getManifest()?.version || '0.0.0';
-    el.textContent = `v${version}`;
-  }
-
   applyStaticI18n();
-  updateVersionLabel();
 
   $('#openSettings').addEventListener('click', () => {
     chrome.runtime.openOptionsPage();
