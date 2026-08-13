@@ -89,7 +89,9 @@
     // so query params are appended correctly regardless of whether baseUrl
     // already ends with '&' or '?'. fmt=json3 returns the COMPLETE transcript
     // (all events with timestamps) in one request — no need to wait for playback.
-    const url = new URL(track.baseUrl);
+    // Some tracks come back with protocol-relative URLs (//www.youtube.com/...).
+    // Resolve against the current page so fetch works.
+    const url = new URL(track.baseUrl, window.location.href);
     url.searchParams.set('fmt', 'json3');
     if (track.translateTo) {
       url.searchParams.set('tlang', track.translateTo);
