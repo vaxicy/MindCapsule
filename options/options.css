@@ -1,11 +1,11 @@
 :root {
-  --bg: #0f0f0f;
-  --surface: #1a1a1a;
-  --border: #2a2a2a;
-  --text: #f5f5f5;
-  --sub: #a0a0a0;
-  --accent: #7c5cff;
-  --accent-hover: #9574ff;
+  --bg: #000000;
+  --surface: #111111;
+  --border: #222222;
+  --text: #ffffff;
+  --sub: #888888;
+  --accent: #ffffff;
+  --accent-hover: #d4d4d4;
   --danger: #ff5c5c;
   --radius: 12px;
   --shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
@@ -77,7 +77,7 @@ body {
 .mc-field select {
   width: 100%;
   padding: 11px 14px;
-  background: #111;
+  background: #0a0a0a;
   border: 1px solid var(--border);
   border-radius: 8px;
   color: var(--text);
@@ -89,7 +89,7 @@ body {
 .mc-field input:focus,
 .mc-field select:focus {
   border-color: var(--accent);
-  box-shadow: 0 0 0 2px rgba(124, 92, 255, 0.2);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.15);
 }
 
 .mc-hint {
@@ -117,7 +117,7 @@ body {
 
 .mc-btn-primary {
   background: var(--accent);
-  color: #fff;
+  color: #000000;
 }
 
 .mc-btn-primary:hover {
@@ -130,7 +130,7 @@ body {
 
 .mc-status {
   font-size: 14px;
-  color: #4ade80;
+  color: #ffffff;
   opacity: 0;
   transition: opacity 0.2s;
 }
