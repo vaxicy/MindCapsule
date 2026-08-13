@@ -89,4 +89,14 @@
   loadSettings();
   els.provider.addEventListener('change', updateUI);
   els.form.addEventListener('submit', saveSettings);
+
+  // Keep the UI-language select in sync when changed elsewhere (e.g. the
+  // YouTube panel's in-panel language toggle writes mc_settings.uiLang).
+  chrome.storage.onChanged.addListener((changes, area) => {
+    if (area !== 'local' || !changes[STORAGE_KEYS.SETTINGS]) return;
+    const newVal = changes[STORAGE_KEYS.SETTINGS].newValue;
+    if (newVal && newVal.uiLang && newVal.uiLang !== els.uiLang.value) {
+      els.uiLang.value = newVal.uiLang;
+    }
+  });
 })();

@@ -14,17 +14,18 @@
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
   z-index: 9999;
   box-sizing: border-box;
-  scrollbar-width: thin;
+  scrollbar-width: none;            /* Firefox: hide native scrollbar */
+  -ms-overflow-style: none;         /* IE/Edge: hide native scrollbar */
   scrollbar-color: #4a4a4a #1a1a1a;
 }
 
+/* Hide native webkit scrollbar but keep a custom thumb (no arrows). */
 .mindcapsule-panel::-webkit-scrollbar {
-  width: 5px;
+  width: 6px;
 }
 
 .mindcapsule-panel::-webkit-scrollbar-track {
-  background: #1a1a1a;
-  border-radius: 3px;
+  background: transparent;
 }
 
 .mindcapsule-panel::-webkit-scrollbar-thumb {
@@ -34,6 +35,11 @@
 
 .mindcapsule-panel::-webkit-scrollbar-thumb:hover {
   background: #666666;
+}
+
+/* Narrow icon button so header fits title + two buttons. */
+.mc-icon-btn {
+  min-width: 26px;
 }
 
 .mindcapsule-panel.mc-collapsed .mc-panel-body {
@@ -164,17 +170,17 @@
   padding-top: 14px;
   max-height: 360px;
   overflow-y: auto;
-  scrollbar-width: thin;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
   scrollbar-color: #4a4a4a #1a1a1a;
 }
 
 .mc-result::-webkit-scrollbar {
-  width: 5px;
+  width: 6px;
 }
 
 .mc-result::-webkit-scrollbar-track {
-  background: #1a1a1a;
-  border-radius: 3px;
+  background: transparent;
 }
 
 .mc-result::-webkit-scrollbar-thumb {

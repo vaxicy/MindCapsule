@@ -15,6 +15,7 @@
   let generatedVideoIds = new Set();   // de-dupe auto-generation per video
   let autoGenerateEnabled = true;
   let fullTranscriptReady = false;     // true once a complete transcript was fetched from a formal track
+  let lastResult = null;               // last generated result, kept for language re-render
 
   const STORAGE_KEYS = window.MC_STORAGE_KEYS;
 
@@ -127,6 +128,7 @@
           <div class="mc-panel-title">MindCapsule</div>
           <div class="mc-panel-subtitle" id="mc-status-line">…</div>
         </div>
+        <button class="mc-icon-btn" id="mc-lang" title="${t('uiLang', lang)}">${lang === 'zh' ? '中' : 'EN'}</button>
         <button class="mc-icon-btn" id="mc-toggle" title="${t('collapsePanel', lang)}">–</button>
       </div>
       <div class="mc-panel-body">
@@ -157,8 +159,39 @@
       savePanelState();
     });
 
+    const langBtn = document.getElementById('mc-lang');
+    langBtn.addEventListener('click', switchLang);
+
     document.getElementById('mc-generate').addEventListener('click', onGenerate);
     enableDrag();
+  }
+
+  // Toggle UI language, persist to mc_settings so the Options page stays in sync.
+  function switchLang() {
+    lang = (lang === 'zh') ? 'en' : 'zh';
+    const langBtn = document.getElementById('mc-lang');
+    if (langBtn) {
+      langBtn.textContent = lang === 'zh' ? '中' : 'EN';
+      langBtn.title = t('uiLang', lang);
+    }
+    applyI18nToPanel();
+    // Persist into existing mc_settings (merge, not overwrite).
+    chrome.storage.local.get({ mc_settings: {} }, (res) => {
+      const settings = Object.assign({}, res.mc_settings || {}, { uiLang: lang });
+      chrome.storage.local.set({ mc_settings: settings });
+    });
+    // Re-render an already-generated result in the new language.
+    const resultEl = document.getElementById('mc-result');
+    if (resultEl && !resultEl.hidden && lastResult) {
+      renderResult(lastResult);
+    }
+    // Re-apply status-line captions text in the new language.
+    if (selectedTrack) {
+      const translateLabel = selectedTrack.translateTo ? ` → ${selectedTrack.translateTo}` : '';
+      const trackName = (selectedTrack.name || selectedTrack.languageCode) || t('autoCaption', lang);
+      const kindLabel = selectedTrack.kind === 'asr' ? t('autoCaption', lang) : t('manualCaption', lang);
+      setStatusLine(`${trackName}${translateLabel} · ${kindLabel}`);
+    }
   }
 
   function enableDrag() {
@@ -189,6 +222,11 @@
     const toggle = document.getElementById('mc-toggle');
     if (toggle) {
       toggle.title = collapsed ? t('expandPanel', lang) : t('collapsePanel', lang);
+    }
+    const langBtn = document.getElementById('mc-lang');
+    if (langBtn) {
+      langBtn.textContent = lang === 'zh' ? '中' : 'EN';
+      langBtn.title = t('uiLang', lang);
     }
     const genBtn = document.getElementById('mc-generate');
     if (genBtn) genBtn.textContent = t('generate', lang);
@@ -310,6 +348,7 @@
         payload: { transcript, videoTitle: currentTitle }
       });
       if (result.ok) {
+        lastResult = result.result;
         renderResult(result.result);
         await saveHistory(currentVideoId, currentTitle, result.result);
       } else {
@@ -323,6 +362,8 @@
   function renderResult(data) {
     const resultEl = document.getElementById('mc-result');
     if (!resultEl) return;
+    // Result is ready: clear the "analyzing" status text so it doesn't linger.
+    setStatus('');
     resultEl.hidden = false;
     resultEl.innerHTML = `
       <section class="mc-section">
