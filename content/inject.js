@@ -7,6 +7,18 @@
 (function () {
   const POLL_DELAYS = [0, 200, 600, 1200, 2000, 3500, 5000, 7000];
   let pollTimer = null;
+  // Latest tracks we know about, kept across the polling reader and the
+  // network interceptor (player endpoint + timedtext) so manual + ASR +
+  // translated tracks merge without overwriting each other.
+  let captionTracksSnapshot = [];
+  let lastSentSignature = '';
+  let networkInterceptInstalled = false;
+
+  function currentVideoId() {
+    try {
+      return new URL(window.location.href).searchParams.get('v') || '';
+    } catch (e) { return ''; }
+  }
 
   function readVideoMeta() {
     const url = new URL(window.location.href);
@@ -23,9 +35,12 @@
       : [];
     return list.captionTracks.map(tr => ({
       baseUrl: tr.baseUrl || '',
-      name: (tr.name && tr.name.simpleText) || '',
+      // Some older payloads use simpleText, newer ones use runs; keep it simple.
+      name: (tr.name && (tr.name.simpleText || tr.name.runs && tr.name.runs.map(r => r.text).join(''))) || '',
       languageCode: tr.languageCode || '',
-      kind: tr.kind || 'asr', // 'asr' = auto-generated
+      // YouTube: manual captions have no `kind`; only ASR has kind === 'asr'.
+      // Do NOT default to 'asr', or manual and auto become indistinguishable.
+      kind: tr.kind || '',
       translationLanguages
     }));
   }
@@ -95,19 +110,39 @@
     return out;
   }
 
-  let lastSentSignature = '';
+  function mergeTracks(preferred, fallback) {
+    const map = new Map();
+    for (const tr of (preferred || [])) {
+      if (!tr.languageCode) continue;
+      map.set(tr.languageCode + ':' + tr.kind, tr);
+    }
+    for (const tr of (fallback || [])) {
+      if (!tr.languageCode) continue;
+      const key = tr.languageCode + ':' + tr.kind;
+      // Prefer the preferred list; only fill in missing languages/kinds.
+      if (!map.has(key)) map.set(key, tr);
+    }
+    return Array.from(map.values());
+  }
+
+  function postTracks(tracks) {
+    const sig = tracks.map(t => t.languageCode + ':' + t.kind + ':' + (t.translateTo || '')).join('|');
+    if (sig !== lastSentSignature || tracks.length !== captionTracksSnapshot.length) {
+      captionTracksSnapshot = tracks;
+      lastSentSignature = sig;
+      window.postMessage({ source: 'MindCapsule', type: 'VIDEO_CAPTIONS', payload: { tracks } }, '*');
+    }
+  }
 
   function readCaptions() {
     if (pollTimer) clearTimeout(pollTimer);
     let attempt = 0;
     function tryRead() {
       const tracks = readCaptionsOnce();
-      const sig = tracks.map(t => t.languageCode + ':' + t.kind + ':' + (t.translateTo || '')).join('|');
-      // Only post when the result changes, so we don't spam the sidebar.
-      if (sig !== lastSentSignature) {
-        lastSentSignature = sig;
-        window.postMessage({ source: 'MindCapsule', type: 'VIDEO_CAPTIONS', payload: { tracks } }, '*');
-      }
+      // Merge with any tracks already captured from the network interceptor
+      // (timedtext / player endpoint) so those are not lost.
+      const merged = mergeTracks(tracks, captionTracksSnapshot);
+      postTracks(merged);
       if (!tracks.length && attempt < POLL_DELAYS.length - 1) {
         attempt++;
         pollTimer = setTimeout(tryRead, POLL_DELAYS[attempt] - POLL_DELAYS[attempt - 1]);
@@ -116,16 +151,172 @@
     tryRead();
   }
 
+  // ---- network interception: player endpoint + timedtext ----
+  function isPlayerUrl(url) {
+    return typeof url === 'string' && url.indexOf('/youtubei/v1/player') !== -1;
+  }
+
+  function isTimedTextUrl(url) {
+    return typeof url === 'string' && url.indexOf('/api/timedtext') !== -1;
+  }
+
+  function tracksFromPlayerResponse(data) {
+    if (!data) return [];
+    const list = data.captions && data.captions.playerCaptionsTracklistRenderer;
+    if (list && list.captionTracks) return extractTracks(list);
+    // Some response wrappers nest it under playerResponse.
+    const nested = data.playerResponse && data.playerResponse.captions && data.playerResponse.captions.playerCaptionsTracklistRenderer;
+    return extractTracks(nested);
+  }
+
+  // When YouTube renders auto-translated captions (e.g. English video shown
+  // with Chinese subtitles), there is often NO separate track in the player
+  // response. Instead YouTube fetches /api/timedtext?lang=en&tlang=zh-Hans...
+  // We parse that URL into a usable track so the sidebar can fetch the same
+  // transcript the player is showing.
+  function trackFromTimedTextUrl(fullUrl) {
+    try {
+      const url = new URL(fullUrl, window.location.href);
+      if (!isTimedTextUrl(url.href)) return null;
+      const params = url.searchParams;
+      const v = params.get('v') || '';
+      if (v && v !== currentVideoId()) return null;
+      const lang = params.get('lang') || '';
+      const tlang = params.get('tlang') || '';
+      const caps = params.get('caps') || '';
+      const nameParam = params.get('name') || '';
+      if (!lang && !tlang) return null;
+      // Strip fmt/tlang so fetchTranscript can append its own fmt and translateTo.
+      const clean = new URL(url.href);
+      clean.searchParams.delete('fmt');
+      clean.searchParams.delete('tlang');
+      return {
+        baseUrl: clean.toString(),
+        name: nameParam || (tlang ? `${lang} → ${tlang}` : lang),
+        languageCode: tlang || lang,
+        kind: caps === 'asr' ? 'asr' : '',
+        translateTo: tlang,
+        translationLanguages: []
+      };
+    } catch (e) { return null; }
+  }
+
+  function handlePotentialTrackUrl(url) {
+    if (!url) return;
+    const tr = trackFromTimedTextUrl(url);
+    if (tr) {
+      captionTracksSnapshot = mergeTracks([tr], captionTracksSnapshot);
+      postTracks(captionTracksSnapshot);
+    }
+  }
+
+  function installNetworkIntercept() {
+    if (networkInterceptInstalled) return;
+    networkInterceptInstalled = true;
+
+    const nativeFetch = window.fetch.bind(window);
+    window.fetch = function (input, init) {
+      let url = '';
+      if (typeof input === 'string') url = input;
+      else if (input && (input.url || input.href)) url = input.url || input.href;
+      const isPlayer = isPlayerUrl(url);
+      const isTimedText = isTimedTextUrl(url);
+      if (isTimedText) handlePotentialTrackUrl(url);
+      return nativeFetch(input, init).then((response) => {
+        if (isPlayer && response && typeof response.clone === 'function') {
+          try {
+            response.clone().json().then((data) => {
+              const tracks = tracksFromPlayerResponse(data);
+              if (tracks && tracks.length) {
+                captionTracksSnapshot = mergeTracks(tracks, captionTracksSnapshot);
+                postTracks(captionTracksSnapshot);
+              }
+            }).catch(() => {});
+          } catch (e) { /* ignore */ }
+        }
+        return response;
+      }).catch((err) => { throw err; });
+    };
+
+    const RealXHR = window.XMLHttpRequest;
+    if (RealXHR) {
+      const realOpen = RealXHR.prototype.open;
+      const realSend = RealXHR.prototype.send;
+      RealXHR.prototype.open = function (method, url) {
+        this.__mcUrl = url || '';
+        return realOpen.apply(this, arguments);
+      };
+      RealXHR.prototype.send = function (body) {
+        const url = this.__mcUrl || '';
+        const isPlayer = isPlayerUrl(url);
+        const isTimedText = isTimedTextUrl(url);
+        if (isTimedText) handlePotentialTrackUrl(url);
+        if (isPlayer || isTimedText) {
+          this.addEventListener('load', () => {
+            try {
+              if (isPlayer) {
+                const data = JSON.parse(this.responseText);
+                const tracks = tracksFromPlayerResponse(data);
+                if (tracks && tracks.length) {
+                  captionTracksSnapshot = mergeTracks(tracks, captionTracksSnapshot);
+                  postTracks(captionTracksSnapshot);
+                }
+              }
+            } catch (e) { /* ignore */ }
+          });
+        }
+        return realSend.apply(this, arguments);
+      };
+    }
+  }
+
+  // ---- DOM caption text fallback ----
+  // If YouTube refuses to expose track metadata, but captions are actually
+  // rendered on screen, collect the visible segments. The sidebar can use
+  // this text directly when no formal track is available.
+  function startCaptionTextObserver() {
+    const seen = new Set();
+    function readCaptionText() {
+      const segments = document.querySelectorAll('.ytp-caption-segment');
+      if (!segments.length) return;
+      let changed = false;
+      for (const seg of segments) {
+        const txt = (seg.textContent || '').trim();
+        if (txt && !seen.has(txt)) {
+          seen.add(txt);
+          changed = true;
+        }
+      }
+      if (changed) {
+        const text = Array.from(seen).join(' ');
+        window.postMessage({ source: 'MindCapsule', type: 'VIDEO_CAPTION_TEXT', payload: { text, ts: Date.now() } }, '*');
+      }
+    }
+    // Poll periodically (captions are sparse, cheap enough).
+    setInterval(readCaptionText, 500);
+    try {
+      const mo = new MutationObserver(readCaptionText);
+      mo.observe(document.body || document.documentElement, { subtree: true, childList: true, characterData: true });
+    } catch (e) { /* ignore */ }
+  }
+
+  function resetState() {
+    lastSentSignature = '';
+    captionTracksSnapshot = [];
+  }
+
   // Send initial meta + captions.
+  installNetworkIntercept();
   readVideoMeta();
   readCaptions();
+  startCaptionTextObserver();
 
   // Re-send on SPA navigation.
   let lastUrl = location.href;
   new MutationObserver(() => {
     if (location.href !== lastUrl) {
       lastUrl = location.href;
-      lastSentSignature = '';
+      resetState();
       setTimeout(() => { readVideoMeta(); readCaptions(); }, 1200);
     }
   }).observe(document, { subtree: true, childList: true });
@@ -134,11 +325,11 @@
   // player / navigating between videos. ASR tracks may only be populated then.
   function bindYtEvents() {
     document.addEventListener('yt-page-data-updated', () => {
-      lastSentSignature = '';
+      resetState();
       readCaptions();
     });
     document.addEventListener('yt-navigate-finish', () => {
-      lastSentSignature = '';
+      resetState();
       readCaptions();
     });
   }
@@ -147,7 +338,7 @@
   // playing. Re-read when playback begins.
   function bindPlayEvents() {
     function onPlay() {
-      lastSentSignature = '';
+      resetState();
       readCaptions();
     }
     const attach = () => {
@@ -178,7 +369,7 @@
   window.addEventListener('message', (event) => {
     if (event.source !== window || !event.data || event.data.source !== 'MindCapsule') return;
     if (event.data.type === 'REQUEST_CAPTIONS') {
-      lastSentSignature = '';
+      resetState();
       readCaptions();
     }
   });

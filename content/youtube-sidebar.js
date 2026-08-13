@@ -9,6 +9,7 @@
   let captionTracks = [];
   let selectedTrack = null;
   let pendingCaptions = false;
+  let domCaptionText = '';
   let panelPos = { right: 24, top: 90 };
   let collapsed = false;
   let generatedVideoIds = new Set();   // de-dupe auto-generation per video
@@ -213,6 +214,17 @@
     }
 
     if (!selectedTrack) {
+      // No formal track, but captions may be visible on screen. Use collected
+      // DOM text as a fallback transcript.
+      if (domCaptionText) {
+        const wordCount = domCaptionText.split(/\s+/).filter(Boolean).length;
+        setStatusLine(`${t('autoCaption', lang)} · ${domCaptionText.substring(0, 40)}...`);
+        if (infoEl) infoEl.textContent = t('autoTranscript', lang).replace('{n}', wordCount.toLocaleString());
+        genBtn.disabled = false;
+        renderDetectButton(false);
+        maybeAutoGenerate();
+        return;
+      }
       // No caption track available: no full transcript can be produced.
       setStatusLine(t('noCaptions', lang));
       if (infoEl) infoEl.textContent = t('noCaptionsHint', lang);
@@ -273,10 +285,10 @@
   }
 
   async function onGenerate() {
-    let transcript = selectedTrack && selectedTrack._text;
+    let transcript = (selectedTrack && selectedTrack._text) || domCaptionText || '';
     if (!transcript) {
       await refreshCaptions();
-      transcript = (selectedTrack && selectedTrack._text) || '';
+      transcript = (selectedTrack && selectedTrack._text) || domCaptionText || '';
       if (!transcript) return;
     }
     setStatus(t('analyzing', lang));
@@ -339,12 +351,20 @@
       currentVideoId = event.data.payload.videoId;
       currentTitle = event.data.payload.title;
       selectedTrack = null;
+      captionTracks = [];
+      domCaptionText = '';
       generatedVideoIds.delete(currentVideoId);
     } else if (event.data.type === 'VIDEO_CAPTIONS') {
       captionTracks = event.data.payload.tracks || [];
       pendingCaptions = false;
       if (panelRoot) refreshCaptions();
       else pendingCaptions = true; // refresh once panel is built
+    } else if (event.data.type === 'VIDEO_CAPTION_TEXT') {
+      const text = event.data.payload.text || '';
+      if (text.length > domCaptionText.length) domCaptionText = text;
+      pendingCaptions = false;
+      if (panelRoot) refreshCaptions();
+      else pendingCaptions = true;
     }
   }
 
@@ -352,7 +372,7 @@
   async function maybeAutoGenerate() {
     if (!autoGenerateEnabled) return;
     if (!currentVideoId || generatedVideoIds.has(currentVideoId)) return;
-    const transcript = (selectedTrack && selectedTrack._text) || '';
+    const transcript = (selectedTrack && selectedTrack._text) || domCaptionText || '';
     if (!transcript) return;
     generatedVideoIds.add(currentVideoId);
     setStatusLine(t('autoGenerating', lang));
