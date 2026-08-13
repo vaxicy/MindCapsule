@@ -1,6 +1,11 @@
-// Runs in MAIN WORLD to read page-specific data (videoId, title, captions) and post back.
+// Runs in MAIN WORLD (declared via manifest "world": "MAIN", "run_at": "document_start")
+// to read page-specific data (videoId, title, captions) and post back to the
+// isolated-world sidebar. Running at document_start gives us a chance to read
+// `window.ytInitialPlayerResponse` before YouTube clears it, and lets us react
+// to SPA navigation + video playback, where auto-generated (ASR) caption tracks
+// often appear only after the user starts watching.
 (function () {
-  const POLL_DELAYS = [0, 500, 1000, 2000, 3000, 5000];
+  const POLL_DELAYS = [0, 200, 600, 1200, 2000, 3500, 5000, 7000];
   let pollTimer = null;
 
   function readVideoMeta() {
@@ -90,14 +95,20 @@
     return out;
   }
 
+  let lastSentSignature = '';
+
   function readCaptions() {
     if (pollTimer) clearTimeout(pollTimer);
     let attempt = 0;
     function tryRead() {
       const tracks = readCaptionsOnce();
-      const hasTracks = tracks.length > 0;
-      window.postMessage({ source: 'MindCapsule', type: 'VIDEO_CAPTIONS', payload: { tracks } }, '*');
-      if (!hasTracks && attempt < POLL_DELAYS.length - 1) {
+      const sig = tracks.map(t => t.languageCode + ':' + t.kind + ':' + (t.translateTo || '')).join('|');
+      // Only post when the result changes, so we don't spam the sidebar.
+      if (sig !== lastSentSignature) {
+        lastSentSignature = sig;
+        window.postMessage({ source: 'MindCapsule', type: 'VIDEO_CAPTIONS', payload: { tracks } }, '*');
+      }
+      if (!tracks.length && attempt < POLL_DELAYS.length - 1) {
         attempt++;
         pollTimer = setTimeout(tryRead, POLL_DELAYS[attempt] - POLL_DELAYS[attempt - 1]);
       }
@@ -114,14 +125,60 @@
   new MutationObserver(() => {
     if (location.href !== lastUrl) {
       lastUrl = location.href;
+      lastSentSignature = '';
       setTimeout(() => { readVideoMeta(); readCaptions(); }, 1200);
     }
   }).observe(document, { subtree: true, childList: true });
+
+  // YouTube fires these custom events when a WATCH page finishes loading the
+  // player / navigating between videos. ASR tracks may only be populated then.
+  function bindYtEvents() {
+    document.addEventListener('yt-page-data-updated', () => {
+      lastSentSignature = '';
+      readCaptions();
+    });
+    document.addEventListener('yt-navigate-finish', () => {
+      lastSentSignature = '';
+      readCaptions();
+    });
+  }
+
+  // Many auto-generated (ASR) caption tracks only appear once the video starts
+  // playing. Re-read when playback begins.
+  function bindPlayEvents() {
+    function onPlay() {
+      lastSentSignature = '';
+      readCaptions();
+    }
+    const attach = () => {
+      const v = document.querySelector('video');
+      if (v) {
+        v.addEventListener('play', onPlay, { once: false });
+      }
+    };
+    attach();
+    // The <video> element is created dynamically on watch pages.
+    new MutationObserver(() => {
+      const v = document.querySelector('video');
+      if (v && !v.__mcPlayBound) {
+        v.__mcPlayBound = true;
+        v.addEventListener('play', onPlay);
+      }
+    }).observe(document, { subtree: true, childList: true });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => { bindYtEvents(); bindPlayEvents(); });
+  } else {
+    bindYtEvents();
+    bindPlayEvents();
+  }
 
   // Allow isolated-world script to request a fresh caption read.
   window.addEventListener('message', (event) => {
     if (event.source !== window || !event.data || event.data.source !== 'MindCapsule') return;
     if (event.data.type === 'REQUEST_CAPTIONS') {
+      lastSentSignature = '';
       readCaptions();
     }
   });

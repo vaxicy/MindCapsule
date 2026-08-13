@@ -26,6 +26,17 @@
         "https://*.youtube.com/*"
       ],
       "js": [
+        "content/inject.js"
+      ],
+      "run_at": "document_start",
+      "world": "MAIN"
+    },
+    {
+      "matches": [
+        "https://www.youtube.com/*",
+        "https://*.youtube.com/*"
+      ],
+      "js": [
         "shared/storage-keys.js",
         "shared/constants.js",
         "shared/i18n.js",

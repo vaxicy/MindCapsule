@@ -260,9 +260,14 @@
       captionTracks = [];
       pendingCaptions = true;
       setStatusLine(t('redetectCaptions', lang) + '…');
-      // Ask inject.js to re-read captions.
+      // Ask inject.js to re-read captions (it keeps polling up to ~7s on its own).
       window.postMessage({ source: 'MindCapsule', type: 'REQUEST_CAPTIONS' }, '*');
-      setTimeout(() => { if (pendingCaptions) refreshCaptions(); }, 1000);
+      let waited = 0;
+      const tick = setInterval(() => {
+        waited += 800;
+        if (!pendingCaptions) { clearInterval(tick); }
+        else if (waited >= 8000) { clearInterval(tick); refreshCaptions(); }
+      }, 800);
     });
     body.appendChild(btn);
   }
@@ -367,10 +372,9 @@
       autoGenerateEnabled = s.autoGenerate !== undefined ? !!s.autoGenerate : true;
     });
 
-    const script = document.createElement('script');
-    script.src = chrome.runtime.getURL('content/inject.js');
-    script.onload = () => script.remove();
-    (document.head || document.documentElement).appendChild(script);
+    // inject.js is now declared in manifest.json as a MAIN-world content script
+    // running at document_start, so it is already loaded and posting messages.
+    // We no longer inject it manually from here.
 
     window.addEventListener('message', onVideoMeta);
 
