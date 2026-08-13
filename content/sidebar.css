@@ -134,6 +134,24 @@
   margin-bottom: 12px;
 }
 
+.mc-caption-tip-action {
+  color: #8ab4f8;
+  cursor: pointer;
+  padding: 6px 8px;
+  background: #1a1a1a;
+  border: 1px solid #2f3b52;
+  border-radius: 8px;
+  transition: background 0.15s ease;
+}
+
+.mc-caption-tip-action:hover {
+  background: #232a33;
+}
+
+.mc-caption-tip-action:active {
+  background: #2a323c;
+}
+
 .mc-generate-btn {
   width: 100%;
   padding: 10px 0;

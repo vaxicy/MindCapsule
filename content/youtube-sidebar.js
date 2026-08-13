@@ -131,7 +131,7 @@
       </div>
       <div class="mc-panel-body">
         <div id="mc-caption-info" class="mc-caption-info"></div>
-        <div id="mc-caption-tip" class="mc-caption-tip">${t('captionTip', lang)}</div>
+        <div id="mc-caption-tip" class="mc-caption-tip mc-caption-tip-static">${t('captionTip', lang)}</div>
         <button id="mc-generate" class="mc-generate-btn">${t('generate', lang)}</button>
         <div id="mc-status" class="mc-status"></div>
         <div id="mc-result" class="mc-result" hidden></div>
@@ -247,7 +247,14 @@
     const redetect = document.getElementById('mc-redetect');
     if (redetect) redetect.textContent = t('redetectCaptions', lang);
     const tip = document.getElementById('mc-caption-tip');
-    if (tip) tip.textContent = t('captionTip', lang);
+    if (tip) {
+      // Keep the interactive switch label in sync if it's currently in action mode.
+      if (tip.classList.contains('mc-caption-tip-action')) {
+        tip.textContent = t('captionSwitch', lang);
+      } else {
+        tip.textContent = t('captionTip', lang);
+      }
+    }
   }
 
   function setStatus(text) {
@@ -263,6 +270,7 @@
   async function refreshCaptions() {
     selectedTrack = pickBestTrack(captionTracks);
     const infoEl = document.getElementById('mc-caption-info');
+    const tipEl = document.getElementById('mc-caption-tip');
     const genBtn = document.getElementById('mc-generate');
 
     // Try auto-translation to browser language if no direct match.
@@ -284,6 +292,7 @@
         if (infoEl) infoEl.textContent = t('autoTranscript', lang).replace('{n}', wordCount.toLocaleString());
         genBtn.disabled = false;
         renderDetectButton(false);
+        updateCaptionTip();
         return;
       }
       // No caption track available: no full transcript can be produced.
@@ -316,10 +325,105 @@
     genBtn.disabled = false;
     selectedTrack._text = data.text;
     renderDetectButton(false);
+    updateCaptionTip();
   }
 
-  function renderDetectButton(show) {
-    const body = document.querySelector('.mc-panel-body');
+  function isEnglishAuto(track) {
+    if (!track) return false;
+    const code = (track.languageCode || '').toLowerCase();
+    // English auto-generated (ASR) OR English track that was auto-translated to English.
+    if (code === 'en' && (track.kind === 'asr' || track.translateTo === 'en')) return true;
+    // Also accept plain English manual when it's the asr-free fallback the user chose.
+    return code === 'en';
+  }
+
+  // Decide whether to show the static tip or upgrade it to a clickable switch button.
+  function updateCaptionTip() {
+    const tipEl = document.getElementById('mc-caption-tip');
+    if (!tipEl) return;
+    const needSwitch = !isEnglishAuto(selectedTrack) && captionTracks.length > 0 &&
+      captionTracks.some(tr => (tr.languageCode || '').toLowerCase() === 'en' && tr.kind === 'asr');
+    if (needSwitch) {
+      tipEl.textContent = t('captionSwitch', lang);
+      tipEl.classList.add('mc-caption-tip-action');
+      tipEl.classList.remove('mc-caption-tip-static');
+      tipEl.onclick = switchToEnglishAuto;
+    } else {
+      tipEl.textContent = t('captionTip', lang);
+      tipEl.classList.remove('mc-caption-tip-action');
+      tipEl.classList.add('mc-caption-tip-static');
+      tipEl.onclick = null;
+    }
+  }
+
+  // Try to switch the on-page player to English (auto-generated) captions.
+  function switchToEnglishAuto() {
+    const tipEl = document.getElementById('mc-caption-tip');
+    if (tipEl) {
+      tipEl.textContent = t('readingCaptions', lang);
+      tipEl.onclick = null;
+    }
+    try {
+      const video = document.querySelector('video');
+      if (video && video.textTracks && video.textTracks.length) {
+        let switched = false;
+        for (let i = 0; i < video.textTracks.length; i++) {
+          const tt = video.textTracks[i];
+          const langCode = (tt.language || '').toLowerCase();
+          if (langCode === 'en' && (tt.kind === 'metadata' || tt.kind === '')) {
+            if (tt.mode !== 'showing') tt.mode = 'showing';
+            switched = true;
+          } else if (tt.mode === 'showing') {
+            tt.mode = 'hidden';
+          }
+        }
+        if (switched) { setTimeout(updateCaptionTip, 800); return; }
+      }
+    } catch (e) { /* fall through to DOM simulation */ }
+
+    // Fallback: simulate the user opening the settings cog → subtitles → English (auto).
+    simulateCaptionSwitch();
+  }
+
+  // Click the YouTube player's CC / settings menu to pick English (auto-generated).
+  function simulateCaptionSwitch() {
+    try {
+      const player = document.querySelector('.html5-video-player') || document.querySelector('#movie_player');
+      if (!player) { setTimeout(updateCaptionTip, 600); return; }
+
+      const settingsBtn = player.querySelector('.ytp-settings-button');
+      if (!settingsBtn) { setTimeout(updateCaptionTip, 600); return; }
+      settingsBtn.click();
+
+      setTimeout(() => {
+        const subMenuBtn = Array.from(player.querySelectorAll('.ytp-menuitem'))
+          .find(el => /subtitle|caption|字幕/i.test(el.textContent || ''));
+        if (!subMenuBtn) { settingsBtn.click(); setTimeout(updateCaptionTip, 600); return; }
+        subMenuBtn.click();
+
+        setTimeout(() => {
+          const enItem = Array.from(player.querySelectorAll('.ytp-menuitem'))
+            .find(el => /english|英语/i.test(el.textContent || '') && /auto|自动/i.test(el.textContent || ''));
+          if (enItem) enItem.click();
+          else {
+            const anyEn = Array.from(player.querySelectorAll('.ytp-menuitem'))
+              .find(el => /english|英语/i.test(el.textContent || ''));
+            if (anyEn) anyEn.click();
+          }
+          // Close whatever menu is open.
+          const closeBtn = player.querySelector('.ytp-settings-button');
+          if (closeBtn) closeBtn.click();
+          // Re-read tracks after the user-equivalent action.
+          window.postMessage({ source: 'MindCapsule', type: 'REQUEST_CAPTIONS' }, '*');
+          setTimeout(updateCaptionTip, 1200);
+        }, 500);
+      }, 500);
+    } catch (e) {
+      setTimeout(updateCaptionTip, 600);
+    }
+  }
+
+  function renderDetectButton(show) {    const body = document.querySelector('.mc-panel-body');
     if (!body) return;
     let btn = document.getElementById('mc-redetect');
     if (!show) {
