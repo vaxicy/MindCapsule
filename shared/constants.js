@@ -13,8 +13,7 @@ const MC_CONSTANTS = Object.freeze({
     customModel: '',
     lang: 'zh',
     uiLang: 'zh',
-    outputLang: 'auto',
-    autoGenerate: true
+    outputLang: 'auto'
   }),
   SILICONFLOW_ENDPOINT: 'https://api.siliconflow.cn/v1',
   SILICONFLOW_DEFAULT_MODEL: 'Qwen/Qwen2.5-72B-Instruct',

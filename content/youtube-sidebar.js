@@ -12,8 +12,6 @@
   let domCaptionText = '';
   let panelPos = { right: 24, top: 90 };
   let collapsed = false;
-  let generatedVideoIds = new Set();   // de-dupe auto-generation per video
-  let autoGenerateEnabled = true;
   let fullTranscriptReady = false;     // true once a complete transcript was fetched from a formal track
   let lastResult = null;               // last generated result, kept for language re-render
 
@@ -163,6 +161,17 @@
     langBtn.addEventListener('click', switchLang);
 
     document.getElementById('mc-generate').addEventListener('click', onGenerate);
+    const copyBtn = document.getElementById('mc-copy-md');
+    if (copyBtn) copyBtn.addEventListener('click', () => {
+      if (!lastResult) return;
+      copyToClipboard(formatMarkdown(lastResult, currentTitle));
+    });
+    const dlBtn = document.getElementById('mc-download-md');
+    if (dlBtn) dlBtn.addEventListener('click', () => {
+      if (!lastResult) return;
+      const fname = (currentTitle || 'mindcapsule-notes').replace(/[\\/:*?"<>|]+/g, '_').slice(0, 80) + '.md';
+      downloadMarkdown(fname, formatMarkdown(lastResult, currentTitle));
+    });
     enableDrag();
   }
 
@@ -230,6 +239,10 @@
     }
     const genBtn = document.getElementById('mc-generate');
     if (genBtn) genBtn.textContent = t('generate', lang);
+    const copyBtn = document.getElementById('mc-copy-md');
+    if (copyBtn) copyBtn.textContent = t('copyMarkdown', lang);
+    const dlBtn = document.getElementById('mc-download-md');
+    if (dlBtn) dlBtn.textContent = t('downloadMarkdown', lang);
     const redetect = document.getElementById('mc-redetect');
     if (redetect) redetect.textContent = t('redetectCaptions', lang);
   }
@@ -268,7 +281,6 @@
         if (infoEl) infoEl.textContent = t('autoTranscript', lang).replace('{n}', wordCount.toLocaleString());
         genBtn.disabled = false;
         renderDetectButton(false);
-        maybeAutoGenerate();
         return;
       }
       // No caption track available: no full transcript can be produced.
@@ -301,7 +313,6 @@
     genBtn.disabled = false;
     selectedTrack._text = data.text;
     renderDetectButton(false);
-    maybeAutoGenerate();
   }
 
   function renderDetectButton(show) {
@@ -366,6 +377,10 @@
     setStatus('');
     resultEl.hidden = false;
     resultEl.innerHTML = `
+      <div class="mc-export-bar">
+        <button id="mc-copy-md" class="mc-export-btn">${t('copyMarkdown', lang)}</button>
+        <button id="mc-download-md" class="mc-export-btn">${t('downloadMarkdown', lang)}</button>
+      </div>
       <section class="mc-section">
         <h3>${t('summary', lang)}</h3>
         <p>${escapeHtml(data.summary || '')}</p>
@@ -397,6 +412,59 @@
     return String(str).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   }
 
+  // Build a Markdown string from the generated result.
+  function formatMarkdown(data, title) {
+    const lines = [];
+    lines.push(`# MindCapsule Notes — ${title || ''}`);
+    lines.push('');
+    lines.push(`## ${t('summary', lang)}`);
+    lines.push((data.summary || '').trim() || '-');
+    lines.push('');
+    lines.push(`## ${t('keyInsights', lang)}`);
+    (data.keyInsights || []).forEach((i) => { if (i) lines.push(`- ${i}`); });
+    if (!(data.keyInsights || []).length) lines.push('-');
+    lines.push('');
+    lines.push(`## ${t('timeline', lang)}`);
+    (data.timeline || []).forEach((i) => {
+      if (!i) return;
+      lines.push(`- **${i.time || ''}** ${i.content || ''}`.trim());
+    });
+    if (!(data.timeline || []).length) lines.push('-');
+    lines.push('');
+    lines.push(`## ${t('actionItems', lang)}`);
+    (data.actionItems || []).forEach((i) => { if (i) lines.push(`- ${i}`); });
+    if (!(data.actionItems || []).length) lines.push('-');
+    lines.push('');
+    return lines.join('\n');
+  }
+
+  function copyToClipboard(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      return navigator.clipboard.writeText(text)
+        .then(() => { setStatus(t('copied', lang)); })
+        .catch(() => { setStatus(t('exportFailed', lang)); });
+    }
+    setStatus(t('exportFailed', lang));
+    return Promise.resolve();
+  }
+
+  function downloadMarkdown(filename, text) {
+    try {
+      const blob = new Blob([text], { type: 'text/markdown;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename || 'mindcapsule-notes.md';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      setStatus(t('copied', lang));
+    } catch (e) {
+      setStatus(t('exportFailed', lang));
+    }
+  }
+
   // ---- message handlers ----
   function onVideoMeta(event) {
     if (event.source !== window || !event.data || event.data.source !== 'MindCapsule') return;
@@ -407,7 +475,6 @@
       captionTracks = [];
       domCaptionText = '';
       fullTranscriptReady = false;
-      generatedVideoIds.delete(currentVideoId);
     } else if (event.data.type === 'VIDEO_CAPTIONS') {
       captionTracks = event.data.payload.tracks || [];
       pendingCaptions = false;
@@ -426,28 +493,12 @@
     }
   }
 
-  // After captions are ready, auto-generate if enabled and not already done for this video.
-  async function maybeAutoGenerate() {
-    if (!autoGenerateEnabled) return;
-    if (!currentVideoId || generatedVideoIds.has(currentVideoId)) return;
-    const transcript = (selectedTrack && selectedTrack._text) || domCaptionText || '';
-    if (!transcript) return;
-    generatedVideoIds.add(currentVideoId);
-    setStatusLine(t('autoGenerating', lang));
-    await onGenerate();
-  }
-
   function init() {
     // Apply stored UI language before building the panel.
     window.MC_LOAD_LANG().then((stored) => {
       lang = stored;
       // Re-apply translations to the already-built panel, if any.
       if (panelRoot) applyI18nToPanel();
-    });
-
-    chrome.storage.local.get({ mc_settings: null }, (res) => {
-      const s = res.mc_settings || {};
-      autoGenerateEnabled = s.autoGenerate !== undefined ? !!s.autoGenerate : true;
     });
 
     // inject.js is now declared in manifest.json as a MAIN-world content script

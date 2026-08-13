@@ -7,7 +7,6 @@
     form: $('#settingsForm'),
     uiLang: $('#uiLang'),
     outputLang: $('#outputLang'),
-    autoGenerate: $('#autoGenerate'),
     provider: $('#provider'),
     apiKey: $('#apiKey'),
     endpoint: $('#endpoint'),
@@ -50,7 +49,6 @@
     const settings = data[STORAGE_KEYS.SETTINGS] || {};
     els.uiLang.value = settings.uiLang || DEFAULTS.uiLang;
     els.outputLang.value = settings.outputLang || DEFAULTS.outputLang;
-    els.autoGenerate.checked = settings.autoGenerate !== undefined ? !!settings.autoGenerate : DEFAULTS.autoGenerate;
     els.provider.value = settings.provider || DEFAULTS.provider;
     els.apiKey.value = settings.apiKey || '';
     els.endpoint.value = settings.endpoint || '';
@@ -70,7 +68,6 @@
     const settings = {
       uiLang: els.uiLang.value,
       outputLang: els.outputLang.value,
-      autoGenerate: els.autoGenerate.checked,
       provider,
       apiKey: els.apiKey.value.trim(),
       endpoint,

@@ -45,8 +45,10 @@ const I18N = Object.freeze({
     outputLangAuto: 'Follow video',
     outputLangZh: 'Chinese',
     outputLangEn: 'English',
-    autoGenerate: 'Auto-generate notes on video open',
-    autoGenerating: 'Auto-detecting captions and generating notes...',
+    exportNotes: 'Export Notes',
+    copyMarkdown: 'Copy Markdown',
+    downloadMarkdown: 'Download .md',
+    exportFailed: 'Export failed',
     langSettings: 'Language settings'
   },
   zh: {
@@ -94,8 +96,10 @@ const I18N = Object.freeze({
     outputLangAuto: '跟随视频',
     outputLangZh: '中文',
     outputLangEn: 'English',
-    autoGenerate: '进入视频时自动生成笔记',
-    autoGenerating: '正在自动识别字幕并生成笔记...',
+    exportNotes: '导出笔记',
+    copyMarkdown: '复制 Markdown',
+    downloadMarkdown: '下载 .md',
+    exportFailed: '导出失败',
     langSettings: '语言设置'
   }
 });
