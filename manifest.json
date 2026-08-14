@@ -7,8 +7,7 @@
   "default_locale": "en",
   "permissions": [
     "storage",
-    "alarms",
-    "activeTab"
+    "alarms"
   ],
   "host_permissions": [
     "https://www.youtube.com/*",

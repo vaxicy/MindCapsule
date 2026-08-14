@@ -1,6 +1,5 @@
-=== 中文商店详细说明 ===
-
-MindCapsule for YouTube 是一款隐私优先的 AI YouTube 学习助手。当你在 YouTube 上观看教程、纪录片、演讲或任何带字幕的知识视频时，它能一键提炼内容，生成结构化的「知识胶囊」，让重点一目了然，复习更高效。
+=== 中文详细说明 ===
+MindCapsule for YouTube 是一款隐私优先的 AI YouTube 学习助手。当你在 YouTube 上观看任何带字幕的知识视频时，它能一键提炼内容，生成结构化的「知识胶囊」，让重点一目了然，复习更高效。
 
 核心功能：
 • 一键总结：从当前 YouTube 视频生成 AI 摘要、关键要点与学习笔记。
@@ -14,10 +13,8 @@ MindCapsule 不会收集你的个人数据，也不会在后台静默访问无�
 
 把每一支 YouTube 视频都变成你的专属知识胶囊。
 
-
-=== English Store Description ===
-
-MindCapsule for YouTube is a privacy-first AI learning assistant for YouTube. When you're watching tutorials, documentaries, talks, or any captioned knowledge video on YouTube, it turns the content into structured "knowledge capsules" so you can grasp the essentials quickly and review them later with ease.
+=== English Detailed Description ===
+MindCapsule for YouTube is a privacy-first AI learning assistant for YouTube. When you're watching any captioned knowledge video on YouTube, it turns the content into structured "knowledge capsules" so you can grasp the essentials quickly and review them later with ease.
 
 Key Features:
 • One-click summaries: Generate AI-powered summaries, key takeaways, and study notes for the current YouTube video.
