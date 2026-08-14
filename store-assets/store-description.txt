@@ -1,0 +1,32 @@
+=== 中文商店详细说明 ===
+
+MindCapsule for YouTube 是一款隐私优先的 AI YouTube 学习助手。当你在 YouTube 上观看教程、公开课、访谈或任何带字幕的知识视频时，它能一键提炼内容，生成结构化的「知识胶囊」，让重点一目了然，复习更高效。
+
+核心功能：
+• 一键总结：从当前 YouTube 视频生成 AI 摘要、关键要点与学习笔记。
+• 知识胶囊：将视频内容整理为可保存、可回顾的结构化学习卡片。
+• 多 AI 提供商：支持 OpenAI、SiliconFlow 以及自定义 OpenAI 兼容端点，API Key 由用户自行配置与保管。
+• 中英双语界面：界面同时支持中文与英文，可一键切换。
+• 笔记导出：轻松复制或整理 AI 生成的学习内容，方便导入 Notion、Obsidian、飞书等工具。
+• 轻量快捷：点击扩展图标即可在侧边栏或弹窗中查看结果，不打断观看。
+
+MindCapsule 不会收集你的个人数据，也不会在后台静默访问无关网站。所有设置与学习数据均保存在本地或你自己的浏览器中，AI 请求仅通过你配置的 API Key 直接发送给对应的第三方服务商。
+
+把每一支 YouTube 视频都变成你的专属知识胶囊。
+
+
+=== English Store Description ===
+
+MindCapsule for YouTube is a privacy-first AI learning assistant for YouTube. When you're watching tutorials, online courses, interviews, or any captioned knowledge video on YouTube, it turns the content into structured "knowledge capsules" so you can grasp the essentials quickly and review them later with ease.
+
+Key Features:
+• One-click summaries: Generate AI-powered summaries, key takeaways, and study notes for the current YouTube video.
+• Knowledge capsules: Save and revisit structured learning cards built from any video.
+• Multiple AI providers: Supports OpenAI, SiliconFlow, and custom OpenAI-compatible endpoints. Your API key is configured and kept by you.
+• Bilingual UI: Switch between Chinese and English interface instantly.
+• Export notes: Copy or organize AI-generated learning content for use in Notion, Obsidian, Lark, or any note-taking tool.
+• Lightweight & fast: Open the extension from the toolbar or sidebar without interrupting your viewing experience.
+
+MindCapsule does not collect your personal data or silently access unrelated websites. All settings and learning data stay locally on your device, and AI requests are sent directly to your chosen provider using only your own API key.
+
+Turn every YouTube video into your personal knowledge capsule.
