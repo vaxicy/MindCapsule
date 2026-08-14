@@ -550,6 +550,12 @@
       captionTracks = [];
       domCaptionText = '';
       fullTranscriptReady = false;
+      // If a result is already rendered (e.g. generated before title arrived),
+      // refresh the title section in place so it no longer shows "missing".
+      const resultEl = document.getElementById('mc-result');
+      if (resultEl && !resultEl.hidden && lastResult) {
+        renderResult(lastResult);
+      }
     } else if (event.data.type === 'VIDEO_CAPTIONS') {
       captionTracks = event.data.payload.tracks || [];
       pendingCaptions = false;
@@ -603,6 +609,15 @@
     // We no longer inject it manually from here.
 
     window.addEventListener('message', onVideoMeta);
+
+    // If the panel is built but no VIDEO_META arrives within 4s (e.g. the
+    // isolated-world listener wasn't ready when inject.js first posted), ask
+    // main world to re-read the title. This avoids a permanent "未获取到标题".
+    setTimeout(() => {
+      if (!currentTitle) {
+        window.postMessage({ source: 'MindCapsule', type: 'REQUEST_VIDEO_META' }, '*');
+      }
+    }, 4000);
 
     const tryInject = () => {
       if (!document.getElementById('mindcapsule-panel')) {

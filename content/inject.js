@@ -62,6 +62,58 @@
     window.postMessage({ source: 'MindCapsule', type: 'VIDEO_META', payload: { videoId, title, verified } }, '*');
   }
 
+  // YouTube is an SPA: at document_start the title/og:title are often still
+  // empty or stale ("YouTube"). Poll with increasing delays until we get a
+  // non-empty title, then stop. The <title> MutationObserver below also
+  // re-sends when the page title updates after navigation.
+  let metaPollTimer = null;
+  function readVideoMetaWithPoll() {
+    if (metaPollTimer) clearTimeout(metaPollTimer);
+    let attempt = 0;
+    function tryRead() {
+      let title = '';
+      try {
+        const vd = window.ytInitialPlayerResponse && window.ytInitialPlayerResponse.videoDetails;
+        if (vd && vd.title) title = String(vd.title).trim();
+      } catch (e) { /* ignore */ }
+      if (!title) {
+        const el = document.querySelector('h1.title.style-scope.ytd-video-primary-info-renderer');
+        if (el) title = el.textContent.trim();
+      }
+      if (!title) {
+        const el = document.querySelector('h1.style-scope.ytd-watch-metadata, h1.ytd-watch-metadata');
+        if (el) title = el.textContent.trim();
+      }
+      if (!title) {
+        const el = document.querySelector('meta[property="og:title"]');
+        if (el && el.content) title = el.content.trim();
+      }
+      if (!title) title = (document.title || '').replace(/\s*-\s*YouTube\s*$/i, '').trim();
+      // Only send when we actually have a title; keep polling otherwise.
+      if (title) {
+        readVideoMeta();
+        return;
+      }
+      if (attempt < POLL_DELAYS.length - 1) {
+        attempt++;
+        metaPollTimer = setTimeout(tryRead, POLL_DELAYS[attempt] - POLL_DELAYS[attempt - 1]);
+      }
+    }
+    tryRead();
+  }
+
+  // Re-send the title whenever <title> changes (covers late SPA updates).
+  function observeTitleChanges() {
+    try {
+      const titleEl = document.querySelector('title') || document.head;
+      const mo = new MutationObserver(() => {
+        const title = (document.title || '').replace(/\s*-\s*YouTube\s*$/i, '').trim();
+        if (title && title !== 'YouTube') readVideoMeta();
+      });
+      mo.observe(titleEl, { subtree: true, childList: true, characterData: true });
+    } catch (e) { /* ignore */ }
+  }
+
   function extractTracks(list) {
     if (!list || !Array.isArray(list.captionTracks)) return [];
     const translationLanguages = Array.isArray(list.translationLanguages)
@@ -341,7 +393,8 @@
 
   // Send initial meta + captions.
   installNetworkIntercept();
-  readVideoMeta();
+  readVideoMetaWithPoll();
+  observeTitleChanges();
   readCaptions();
   startCaptionTextObserver();
 
@@ -360,10 +413,12 @@
   function bindYtEvents() {
     document.addEventListener('yt-page-data-updated', () => {
       resetState();
+      readVideoMeta();
       readCaptions();
     });
     document.addEventListener('yt-navigate-finish', () => {
       resetState();
+      readVideoMeta();
       readCaptions();
     });
   }
@@ -405,6 +460,8 @@
     if (event.data.type === 'REQUEST_CAPTIONS') {
       resetState();
       readCaptions();
+    } else if (event.data.type === 'REQUEST_VIDEO_META') {
+      readVideoMetaWithPoll();
     }
   });
 })();
