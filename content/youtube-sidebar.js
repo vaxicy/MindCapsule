@@ -379,33 +379,75 @@
     }
   }
 
+  function timeToSeconds(time) {
+    if (!time) return null;
+    const parts = String(time).split(':').map(p => parseInt(p, 10));
+    if (parts.some(isNaN)) return null;
+    return parts.reduce((acc, v) => acc * 60 + v, 0);
+  }
+
+  function youtubeLink(time) {
+    const secs = timeToSeconds(time);
+    if (secs === null || !currentVideoId) return null;
+    return `https://www.youtube.com/watch?v=${currentVideoId}&t=${secs}s`;
+  }
+
   function renderResult(data) {
     const resultEl = document.getElementById('mc-result');
     if (!resultEl) return;
     // Result is ready: clear the "analyzing" status text so it doesn't linger.
     setStatus('');
     resultEl.hidden = false;
+    const sections = [];
+
+    // Source header: title + link + generated time.
+    const genTime = new Date().toLocaleString(lang === 'zh' ? 'zh-CN' : 'en-US');
+    let header = `<div class="mc-source">`;
+    if (currentTitle) header += `<div class="mc-source-title">${escapeHtml(currentTitle)}</div>`;
+    if (currentVideoId) header += `<a class="mc-source-link" href="https://www.youtube.com/watch?v=${currentVideoId}" target="_blank" rel="noopener">https://www.youtube.com/watch?v=${currentVideoId}</a>`;
+    header += `<div class="mc-source-time">${escapeHtml(genTime)}</div>`;
+    header += `</div>`;
+
+    // TL;DR highlight, if present.
+    if (data.tldr) {
+      sections.push(`<section class="mc-section mc-tldr"><p>${escapeHtml(data.tldr)}</p></section>`);
+    }
+
+    // Summary.
+    if (data.summary) {
+      sections.push(`<section class="mc-section"><h3>${t('summary', lang)}</h3><p>${escapeHtml(data.summary)}</p></section>`);
+    }
+
+    // Key insights.
+    if (data.keyInsights && data.keyInsights.length) {
+      sections.push(`<section class="mc-section"><h3>${t('keyInsights', lang)}</h3><ul>${data.keyInsights.map(i => `<li>${escapeHtml(i)}</li>`).join('')}</ul></section>`);
+    }
+
+    // Timeline with clickable timestamps.
+    if (data.timeline && data.timeline.length) {
+      const items = data.timeline.map(i => {
+        const link = youtubeLink(i.time);
+        const timeHtml = link
+          ? `<a class="mc-ts" href="${link}" target="_blank" rel="noopener">${escapeHtml(i.time || '')}</a>`
+          : `<strong>${escapeHtml(i.time || '')}</strong>`;
+        return `<li>${timeHtml} ${escapeHtml(i.content || '')}</li>`;
+      }).join('');
+      sections.push(`<section class="mc-section"><h3>${t('timeline', lang)}</h3><ul>${items}</ul></section>`);
+    }
+
+    // Action items as a checklist.
+    if (data.actionItems && data.actionItems.length) {
+      const items = data.actionItems.map(i => `<li class="mc-action-item"><label><input type="checkbox"> ${escapeHtml(i)}</label></li>`).join('');
+      sections.push(`<section class="mc-section"><h3>${t('actionItems', lang)}</h3><ul class="mc-checklist">${items}</ul></section>`);
+    }
+
     resultEl.innerHTML = `
       <div class="mc-export-bar">
         <button id="mc-copy-md" class="mc-export-btn">${t('copyMarkdown', lang)}</button>
         <button id="mc-download-md" class="mc-export-btn">${t('downloadMarkdown', lang)}</button>
       </div>
-      <section class="mc-section">
-        <h3>${t('summary', lang)}</h3>
-        <p>${escapeHtml(data.summary || '')}</p>
-      </section>
-      <section class="mc-section">
-        <h3>${t('keyInsights', lang)}</h3>
-        <ul>${(data.keyInsights || []).map(i => `<li>${escapeHtml(i)}</li>`).join('')}</ul>
-      </section>
-      <section class="mc-section">
-        <h3>${t('timeline', lang)}</h3>
-        <ul>${(data.timeline || []).map(i => `<li><strong>${escapeHtml(i.time || '')}</strong> ${escapeHtml(i.content || '')}</li>`).join('')}</ul>
-      </section>
-      <section class="mc-section">
-        <h3>${t('actionItems', lang)}</h3>
-        <ul>${(data.actionItems || []).map(i => `<li>${escapeHtml(i)}</li>`).join('')}</ul>
-      </section>
+      ${header}
+      ${sections.join('\n')}
     `;
   }
 
@@ -426,24 +468,41 @@
     const lines = [];
     lines.push(`# MindCapsule Notes — ${title || ''}`);
     lines.push('');
-    lines.push(`## ${t('summary', lang)}`);
-    lines.push((data.summary || '').trim() || '-');
-    lines.push('');
-    lines.push(`## ${t('keyInsights', lang)}`);
-    (data.keyInsights || []).forEach((i) => { if (i) lines.push(`- ${i}`); });
-    if (!(data.keyInsights || []).length) lines.push('-');
-    lines.push('');
-    lines.push(`## ${t('timeline', lang)}`);
-    (data.timeline || []).forEach((i) => {
-      if (!i) return;
-      lines.push(`- **${i.time || ''}** ${i.content || ''}`.trim());
-    });
-    if (!(data.timeline || []).length) lines.push('-');
-    lines.push('');
-    lines.push(`## ${t('actionItems', lang)}`);
-    (data.actionItems || []).forEach((i) => { if (i) lines.push(`- ${i}`); });
-    if (!(data.actionItems || []).length) lines.push('-');
-    lines.push('');
+    if (currentVideoId) {
+      lines.push(`> Source: https://www.youtube.com/watch?v=${currentVideoId}`);
+      lines.push('');
+    }
+    if (data.tldr) {
+      lines.push(`**TL;DR:** ${data.tldr}`);
+      lines.push('');
+    }
+    if (data.summary) {
+      lines.push(`## ${t('summary', lang)}`);
+      lines.push(data.summary.trim());
+      lines.push('');
+    }
+    if (data.keyInsights && data.keyInsights.length) {
+      lines.push(`## ${t('keyInsights', lang)}`);
+      data.keyInsights.forEach((i) => { if (i) lines.push(`- ${i}`); });
+      lines.push('');
+    }
+    if (data.timeline && data.timeline.length) {
+      lines.push(`## ${t('timeline', lang)}`);
+      data.timeline.forEach((i) => {
+        if (!i) return;
+        const link = youtubeLink(i.time);
+        const timePart = link
+          ? `[${i.time || ''}](https://www.youtube.com/watch?v=${currentVideoId}&t=${timeToSeconds(i.time)}s)`
+          : (i.time || '');
+        lines.push(`- **${timePart}** ${i.content || ''}`.trim());
+      });
+      lines.push('');
+    }
+    if (data.actionItems && data.actionItems.length) {
+      lines.push(`## ${t('actionItems', lang)}`);
+      data.actionItems.forEach((i) => { if (i) lines.push(`- [ ] ${i}`); });
+      lines.push('');
+    }
     return lines.join('\n');
   }
 

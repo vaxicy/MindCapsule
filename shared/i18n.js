@@ -23,7 +23,7 @@ const I18N = Object.freeze({
     pasteTranscript: 'Paste transcript / captions',
     autoTranscript: 'Auto-captured {n} words from video subtitles.',
     noCaptions: 'No captions',
-    noCaptionsHint: 'No subtitles detected yet. Try playing the video (auto captions load on playback), or re-detect.',
+    noCaptionsHint: 'No captions? Turn YouTube subtitles (CC) off, then on again.',
     readingCaptions: 'Reading subtitles...',
     autoCaption: 'Auto',
     manualCaption: 'Manual',
@@ -47,11 +47,11 @@ const I18N = Object.freeze({
     outputLangEn: 'English',
     exportNotes: 'Export Notes',
     copyMarkdown: 'Copy Markdown',
-    downloadMarkdown: 'Download .md',
+    downloadMarkdown: 'Download Markdown',
     exportFailed: 'Export failed',
     langSettings: 'Language settings',
     captionTip: 'Prefer English (auto-generated) captions for best results.',
-    captionToggleHint: 'If no captions are detected yet, turn off and re-enable subtitles (CC) once in the YouTube player to trigger detection.'
+    captionToggleHint: 'No captions? Turn YouTube subtitles (CC) off, then on again.'
   },
   zh: {
     settingsTitle: 'MindCapsule 设置',
@@ -76,7 +76,7 @@ const I18N = Object.freeze({
     pasteTranscript: '粘贴字幕 / 文稿',
     autoTranscript: '已从视频字幕自动识别 {n} 字。',
     noCaptions: '无字幕',
-    noCaptionsHint: '尚未检测到字幕。请播放视频（自动字幕在播放时才加载），或点重新检测。',
+    noCaptionsHint: '未检测到字幕？请关闭后再打开 YouTube 字幕（CC）。',
     readingCaptions: '正在读取字幕...',
     autoCaption: '自动',
     manualCaption: '人工',
@@ -100,11 +100,11 @@ const I18N = Object.freeze({
     outputLangEn: 'English',
     exportNotes: '导出笔记',
     copyMarkdown: '复制 Markdown',
-    downloadMarkdown: '下载 .md',
+    downloadMarkdown: '下载 Markdown',
     exportFailed: '导出失败',
     langSettings: '语言设置',
     captionTip: '建议使用英语（自动生成）字幕，识别效果最佳。',
-    captionToggleHint: '如果尚未检测到字幕，请在 YouTube 播放器里关闭一次字幕（CC）再重新打开，即可触发检测。'
+    captionToggleHint: '未检测到字幕？请关闭后再打开 YouTube 字幕（CC）。'
   }
 });
 

@@ -259,3 +259,85 @@
 .mc-section li {
   margin-bottom: 4px;
 }
+
+/* Source block at the top of the result. */
+.mc-source {
+  background: #1a1a1a;
+  border: 1px solid #2a2a2a;
+  border-radius: 8px;
+  padding: 8px 10px;
+  margin-bottom: 14px;
+}
+
+.mc-source-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: #ffffff;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.mc-source-link {
+  display: block;
+  font-size: 11px;
+  color: #8ab4f8;
+  text-decoration: none;
+  margin-top: 3px;
+  word-break: break-all;
+}
+
+.mc-source-link:hover {
+  text-decoration: underline;
+}
+
+.mc-source-time {
+  font-size: 10px;
+  color: #7c8288;
+  margin-top: 3px;
+}
+
+/* TL;DR highlight box. */
+.mc-tldr p {
+  font-size: 13px;
+  font-weight: 600;
+  color: #ffffff;
+  background: linear-gradient(90deg, #1f3a2e, #1a1a1a);
+  border-left: 3px solid #4caf7d;
+  border-radius: 8px;
+  padding: 10px 12px;
+  line-height: 1.5;
+}
+
+/* Clickable timeline timestamps. */
+.mc-ts {
+  color: #8ab4f8;
+  text-decoration: none;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.mc-ts:hover {
+  text-decoration: underline;
+}
+
+/* Action-item checklist. */
+.mc-checklist {
+  list-style: none;
+  padding-left: 0;
+}
+
+.mc-action-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #b0b0b0;
+  margin-bottom: 6px;
+}
+
+.mc-action-item input[type="checkbox"] {
+  margin-top: 2px;
+  flex-shrink: 0;
+  cursor: pointer;
+}

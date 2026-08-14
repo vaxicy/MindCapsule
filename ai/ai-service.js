@@ -73,7 +73,15 @@
     else if (outputLang === 'en') langInstruction = 'Respond in English.';
 
     const systemPrompt = `You are MindCapsule, a learning assistant that converts YouTube transcripts into structured knowledge notes.
-Always respond in JSON format with exactly these keys: summary, keyInsights (array), timeline (array of {time, content}), actionItems (array).
+Always respond in JSON format with exactly these keys: tldr (one-sentence summary), summary, keyInsights (array), timeline (array of {time, content}), actionItems (array).
+Rules:
+- "tldr": a single punchy one-sentence takeaway, max 30 words.
+- "summary": 3-5 sentences capturing the core idea.
+- "keyInsights": 3-5 distinct insights, opinions, or conclusions. Do NOT repeat timeline stories or examples; keep them conceptual.
+- "timeline": 3-6 moments, each with "time" as a short timestamp like "2:30" or "0:00" and "content" as one concrete example, story, or point made at that moment. Do NOT put conceptual insights here.
+- "actionItems": 2-5 concrete, doable next steps.
+- Avoid overlap: a point should appear in either keyInsights OR timeline, never both.
+- Each array entry must be a non-empty string (timeline entries use the {time, content} object).
 ${langInstruction}`;
 
     const userPrompt = `Video title: ${videoTitle || 'Untitled'}\n\nTranscript:\n${transcript}\n\nConvert this into structured notes with the four sections above.`;
@@ -86,6 +94,7 @@ ${langInstruction}`;
     try {
       const json = JSON.parse(raw);
       return {
+        tldr: json.tldr || '',
         summary: json.summary || '',
         keyInsights: Array.isArray(json.keyInsights) ? json.keyInsights : [],
         timeline: Array.isArray(json.timeline) ? json.timeline : [],
