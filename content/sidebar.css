@@ -336,11 +336,12 @@
   margin-bottom: 4px;
 }
 
-/* TL;DR / Key Takeaway highlighted card: visually distinct from other sections. */
+/* TL;DR / Key Takeaway highlighted card: dark graphite card, white accent bar.
+   Black & white palette only (no blue). */
 .mc-tldr {
-  background: #1b2733;
-  border: 1px solid #2f4a63;
-  border-left: 3px solid #4a9eff;
+  background: #1c1c1e;
+  border: 1px solid #3a3a3c;
+  border-left: 3px solid #f5f5f7;
   border-radius: 10px;
   padding: 10px 12px;
   margin-bottom: 14px;
@@ -352,13 +353,13 @@
   font-weight: 700;
   letter-spacing: 0.4px;
   text-transform: uppercase;
-  color: #4a9eff;
+  color: #f5f5f7;
 }
 
 .mc-tldr p {
   font-size: 13px;
   line-height: 1.6;
-  color: #eaeef2;
+  color: #e5e5e7;
   margin: 0;
   font-weight: 500;
 }
