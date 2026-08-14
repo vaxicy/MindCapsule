@@ -166,33 +166,35 @@
 
     // The copy/export dropdowns are injected dynamically when a result is
     // rendered, so bind via delegation on the (always-present) #mc-result
-    // container. This guarantees change events work regardless of when the
-    // selects are created or re-created on language switch.
+    // container. This guarantees click handling works regardless of when the
+    // dropdowns are created or re-created on language switch.
     const resultEl = document.getElementById('mc-result');
     if (resultEl) {
-      resultEl.addEventListener('change', (e) => {
-        const copySel = e.target.closest('#mc-copy-select');
-        if (copySel) {
-          if (!lastResult) { copySel.selectedIndex = 0; return; }
-          if (copySel.value === 'txt') {
-            copyToClipboard(formatPlainText(lastResult, currentTitle));
-          } else {
-            copyToClipboard(formatMarkdown(lastResult, currentTitle));
-          }
+      // Custom dropdown: clicking an option only updates the selected value,
+      // it does NOT execute the copy/export. Execution happens only when the
+      // user clicks the explicit action button (Copied / Export). This prevents
+      // accidental clipboard writes / file downloads when merely choosing a format.
+      resultEl.addEventListener('click', (e) => {
+        const option = e.target.closest('.mc-dropdown-option');
+        if (option) {
+          const dropdown = option.closest('.mc-dropdown');
+          selectDropdownOption(dropdown, option.dataset.value);
+          closeDropdown(dropdown);
           return;
         }
-        const expSel = e.target.closest('#mc-export-select');
-        if (expSel) {
-          if (!lastResult) { expSel.selectedIndex = 0; return; }
-          const base = (currentTitle || 'mindcapsule-notes').replace(/[\\/:*?"<>|]+/g, '_').slice(0, 80);
-          if (expSel.value === 'txt') {
-            downloadText(base + '.txt', formatPlainText(lastResult, currentTitle));
-          } else if (expSel.value === 'pdf') {
-            exportPdf(lastResult, currentTitle);
-          } else {
-            downloadMarkdown(base + '.md', formatMarkdown(lastResult, currentTitle));
-          }
+        const trigger = e.target.closest('.mc-dropdown-trigger');
+        if (trigger) {
+          toggleDropdown(trigger.closest('.mc-dropdown'));
+          return;
         }
+        const action = e.target.closest('.mc-export-action');
+        if (action) {
+          executeExportAction(action.dataset.group, action.dataset.value);
+        }
+      });
+      // Close any open dropdown when clicking outside the result area.
+      resultEl.addEventListener('click', (e) => {
+        if (!e.target.closest('.mc-dropdown')) closeAllDropdowns(resultEl);
       });
     }
 
@@ -263,18 +265,28 @@
     }
     const genBtn = document.getElementById('mc-generate');
     if (genBtn) genBtn.textContent = t('generate', lang);
-    const copySel = document.getElementById('mc-copy-select');
-    if (copySel) {
-      copySel.title = t('copyAs', lang);
-      if (copySel.options[0]) copySel.options[0].textContent = `${t('copyAs', lang)} · ${t('copyMarkdown', lang)}`;
-      if (copySel.options[1]) copySel.options[1].textContent = `${t('copyAs', lang)} · ${t('copyPlainText', lang)}`;
+    const copyDropdown = document.querySelector('#mc-result .mc-dropdown.mc-dropdown-copy');
+    if (copyDropdown) {
+      copyDropdown.querySelector('.mc-dropdown-trigger').title = t('copyAs', lang);
+      const triggerLabel = copyDropdown.querySelector('.mc-dropdown-label');
+      if (triggerLabel) triggerLabel.textContent = t('copyMarkdown', lang);
+      const opts = copyDropdown.querySelectorAll('.mc-dropdown-option');
+      if (opts[0]) opts[0].textContent = t('copyMarkdown', lang);
+      if (opts[1]) opts[1].textContent = t('copyPlainText', lang);
+      const action = copyDropdown.querySelector('.mc-export-action');
+      if (action) action.textContent = t('copyAs', lang);
     }
-    const expSel = document.getElementById('mc-export-select');
-    if (expSel) {
-      expSel.title = t('exportAs', lang);
-      if (expSel.options[0]) expSel.options[0].textContent = `${t('exportAs', lang)} · ${t('exportMarkdown', lang)}`;
-      if (expSel.options[1]) expSel.options[1].textContent = `${t('exportAs', lang)} · ${t('exportTxt', lang)}`;
-      if (expSel.options[2]) expSel.options[2].textContent = `${t('exportAs', lang)} · ${t('exportPdf', lang)}`;
+    const expDropdown = document.querySelector('#mc-result .mc-dropdown.mc-dropdown-export');
+    if (expDropdown) {
+      expDropdown.querySelector('.mc-dropdown-trigger').title = t('exportAs', lang);
+      const triggerLabel = expDropdown.querySelector('.mc-dropdown-label');
+      if (triggerLabel) triggerLabel.textContent = t('exportMarkdown', lang);
+      const opts = expDropdown.querySelectorAll('.mc-dropdown-option');
+      if (opts[0]) opts[0].textContent = t('exportMarkdown', lang);
+      if (opts[1]) opts[1].textContent = t('exportTxt', lang);
+      if (opts[2]) opts[2].textContent = t('exportPdf', lang);
+      const action = expDropdown.querySelector('.mc-export-action');
+      if (action) action.textContent = t('exportAs', lang);
     }
     const redetect = document.getElementById('mc-redetect');
     if (redetect) redetect.textContent = t('redetectCaptions', lang);
@@ -432,13 +444,6 @@
     resultEl.hidden = false;
     const sections = [];
 
-    // Video title as the first section heading, matching other result sections.
-    // No link is needed because the panel is already on the current YouTube page.
-    const titleText = currentTitle ? escapeHtml(currentTitle) : t('videoTitleMissing', lang);
-    const titleClass = currentTitle ? 'mc-result-title' : 'mc-result-title mc-result-title-missing';
-    sections.unshift(`<section class="mc-section mc-section-title"><h3>${t('videoTitle', lang)}</h3><p class="${titleClass}">${titleText}</p></section>`);
-    const header = '';
-
     // TL;DR highlight, if present.
     if (data.tldr) {
       sections.push(`<section class="mc-section mc-tldr"><h3>${t('tldr', lang)}</h3><p>${escapeHtml(data.tldr)}</p></section>`);
@@ -469,21 +474,94 @@
       sections.push(`<section class="mc-section"><h3>${t('actionItems', lang)}</h3><ul>${items}</ul></section>`);
     }
 
+    // Export bar: two custom dropdowns (format picker) + an explicit action
+    // button each. Selecting a format does NOT trigger the action; only the
+    // action button does. This avoids accidental copy/download on selection.
     resultEl.innerHTML = `
       <div class="mc-export-bar">
-        <select id="mc-copy-select" class="mc-export-select" title="${t('copyAs', lang)}">
-          <option value="md">${t('copyAs', lang)} · ${t('copyMarkdown', lang)}</option>
-          <option value="txt">${t('copyAs', lang)} · ${t('copyPlainText', lang)}</option>
-        </select>
-        <select id="mc-export-select" class="mc-export-select" title="${t('exportAs', lang)}">
-          <option value="md">${t('exportAs', lang)} · ${t('exportMarkdown', lang)}</option>
-          <option value="txt">${t('exportAs', lang)} · ${t('exportTxt', lang)}</option>
-          <option value="pdf">${t('exportAs', lang)} · ${t('exportPdf', lang)}</option>
-        </select>
+        <div class="mc-dropdown mc-dropdown-copy" data-group="copy">
+          <button class="mc-dropdown-trigger" type="button" title="${t('copyAs', lang)}">
+            <span class="mc-dropdown-label">${t('copyMarkdown', lang)}</span>
+            <span class="mc-dropdown-caret">▾</span>
+          </button>
+          <div class="mc-dropdown-menu" hidden>
+            <div class="mc-dropdown-option" data-value="md">${t('copyMarkdown', lang)}</div>
+            <div class="mc-dropdown-option" data-value="txt">${t('copyPlainText', lang)}</div>
+          </div>
+          <button class="mc-export-action" type="button" data-group="copy" data-value="md">${t('copyAs', lang)}</button>
+        </div>
+        <div class="mc-dropdown mc-dropdown-export" data-group="export">
+          <button class="mc-dropdown-trigger" type="button" title="${t('exportAs', lang)}">
+            <span class="mc-dropdown-label">${t('exportMarkdown', lang)}</span>
+            <span class="mc-dropdown-caret">▾</span>
+          </button>
+          <div class="mc-dropdown-menu" hidden>
+            <div class="mc-dropdown-option" data-value="md">${t('exportMarkdown', lang)}</div>
+            <div class="mc-dropdown-option" data-value="txt">${t('exportTxt', lang)}</div>
+            <div class="mc-dropdown-option" data-value="pdf">${t('exportPdf', lang)}</div>
+          </div>
+          <button class="mc-export-action" type="button" data-group="export" data-value="md">${t('exportAs', lang)}</button>
+        </div>
       </div>
-      ${header}
       ${sections.join('\n')}
     `;
+  }
+
+  // ---- custom dropdown helpers ----
+  function selectDropdownOption(dropdown, value) {
+    if (!dropdown) return;
+    dropdown.dataset.value = value;
+    // Keep the action button in sync so its click uses the chosen format.
+    const action = dropdown.querySelector('.mc-export-action');
+    if (action) action.dataset.value = value;
+    const label = dropdown.querySelector('.mc-dropdown-label');
+    const opt = dropdown.querySelector(`.mc-dropdown-option[data-value="${value}"]`);
+    if (label && opt) label.textContent = opt.textContent;
+  }
+
+  function openDropdown(dropdown) {
+    if (!dropdown) return;
+    const menu = dropdown.querySelector('.mc-dropdown-menu');
+    if (menu) menu.hidden = false;
+    dropdown.classList.add('mc-open');
+  }
+
+  function closeDropdown(dropdown) {
+    if (!dropdown) return;
+    const menu = dropdown.querySelector('.mc-dropdown-menu');
+    if (menu) menu.hidden = true;
+    dropdown.classList.remove('mc-open');
+  }
+
+  function toggleDropdown(dropdown) {
+    if (!dropdown) return;
+    if (dropdown.classList.contains('mc-open')) closeDropdown(dropdown);
+    else openDropdown(dropdown);
+  }
+
+  function closeAllDropdowns(scope) {
+    (scope || document).querySelectorAll('.mc-dropdown.mc-open').forEach((d) => closeDropdown(d));
+  }
+
+  // Read the chosen format from the dropdown and execute the actual operation.
+  function executeExportAction(group, value) {
+    if (!lastResult) return;
+    if (group === 'copy') {
+      if (value === 'txt') {
+        copyToClipboard(formatPlainText(lastResult, currentTitle));
+      } else {
+        copyToClipboard(formatMarkdown(lastResult, currentTitle));
+      }
+    } else {
+      const base = (currentTitle || 'mindcapsule-notes').replace(/[\\/:*?"<>|]+/g, '_').slice(0, 80);
+      if (value === 'txt') {
+        downloadText(base + '.txt', formatPlainText(lastResult, currentTitle));
+      } else if (value === 'pdf') {
+        exportPdf(lastResult, currentTitle);
+      } else {
+        downloadMarkdown(base + '.md', formatMarkdown(lastResult, currentTitle));
+      }
+    }
   }
 
   async function saveHistory(videoId, title, result) {
@@ -622,25 +700,35 @@
     }
   }
 
-  // PDF via browser print: open a clean print window showing only the notes,
-  // then invoke print (user saves as PDF from the dialog). Zero dependencies.
+  // PDF via a hidden iframe that contains ONLY the note text (no logo, no
+  // buttons, no panel chrome). The iframe is removed right after the print
+  // dialog is shown. Zero dependencies, and the panel UI never gets printed.
   function exportPdf(data, title) {
     try {
       const doc = formatPlainText(data, title);
-      const w = window.open('', '_blank');
-      if (!w) { setStatus(t('exportFailed', lang)); return; }
-      w.document.open();
-      w.document.write(
+      const iframe = document.createElement('iframe');
+      iframe.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden;';
+      document.body.appendChild(iframe);
+      const idoc = iframe.contentWindow.document;
+      idoc.open();
+      idoc.write(
         '<!doctype html><html><head><meta charset="utf-8">' +
         '<title>' + escapeHtml(title || 'MindCapsule Notes') + '</title>' +
-        '<style>body{font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;' +
-        'line-height:1.6;color:#222;max-width:760px;margin:32px auto;padding:0 24px;' +
+        '<style>body{font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif;' +
+        'font-size:13px;line-height:1.7;color:#1a1a1a;max-width:780px;margin:24px auto;padding:0 24px;' +
         'white-space:pre-wrap;word-break:break-word;}@media print{body{margin:0;}}</style>' +
         '</head><body>' + escapeHtml(doc) + '</body></html>'
       );
-      w.document.close();
-      w.focus();
-      setTimeout(() => { w.print(); }, 300);
+      idoc.close();
+      const removeIframe = () => {
+        if (iframe && iframe.parentNode) iframe.parentNode.removeChild(iframe);
+      };
+      iframe.contentWindow.focus();
+      setTimeout(() => {
+        iframe.contentWindow.print();
+        // Give the print dialog a moment, then clean up.
+        setTimeout(removeIframe, 1000);
+      }, 250);
       setStatus(t('copied', lang));
     } catch (e) {
       setStatus(t('exportFailed', lang));

@@ -187,7 +187,77 @@
   margin-bottom: 14px;
 }
 
-.mc-export-btn {
+/* Custom dropdown: replaces native <select> so the picker never gets clipped
+   by the panel and never fires copy/download on selection. */
+.mc-dropdown {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+
+.mc-dropdown-trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 7px 8px;
+  background: #1a1a1a;
+  color: #cfcfcf;
+  border: 1px solid #3a3a3a;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+  box-sizing: border-box;
+}
+
+.mc-dropdown-trigger:hover {
+  color: #ffffff;
+  border-color: #9aa0a6;
+}
+
+.mc-dropdown-caret {
+  font-size: 10px;
+  color: #9aa0a6;
+  flex-shrink: 0;
+}
+
+.mc-dropdown-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mc-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 50;
+  background: #1a1a1a;
+  border: 1px solid #3a3a3a;
+  border-radius: 8px;
+  padding: 4px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+}
+
+.mc-dropdown-option {
+  padding: 7px 8px;
+  font-size: 12px;
+  color: #cfcfcf;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.12s;
+}
+
+.mc-dropdown-option:hover {
+  background: #272727;
+  color: #ffffff;
+}
+
+.mc-export-action {
   flex: 1;
   padding: 7px 0;
   background: #1a1a1a;
@@ -198,35 +268,12 @@
   font-weight: 500;
   cursor: pointer;
   transition: all 0.15s;
+  box-sizing: border-box;
 }
 
-.mc-export-btn:hover {
+.mc-export-action:hover {
   color: #ffffff;
   border-color: #9aa0a6;
-}
-
-.mc-export-select {
-  flex: 1;
-  padding: 7px 6px;
-  background: #1a1a1a;
-  color: #cfcfcf;
-  border: 1px solid #3a3a3a;
-  border-radius: 8px;
-  font-size: 12px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.15s;
-  max-width: 100%;
-}
-
-.mc-export-select:hover {
-  color: #ffffff;
-  border-color: #9aa0a6;
-}
-
-.mc-export-select option {
-  background: #1a1a1a;
-  color: #cfcfcf;
 }
 
 .mc-result {
@@ -282,21 +329,6 @@
 
 .mc-section li {
   margin-bottom: 4px;
-}
-
-/* Video title shown as the first result section. */
-.mc-section-title p.mc-result-title {
-  color: #ffffff;
-  font-size: 13px;
-  font-weight: 600;
-  line-height: 1.5;
-  margin: 0;
-  word-break: break-word;
-}
-
-.mc-result-title.mc-result-title-missing {
-  color: #7c8288;
-  font-weight: 400;
 }
 
 /* Heading spacing inside section boxes. */
