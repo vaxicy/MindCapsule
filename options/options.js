@@ -20,13 +20,7 @@
 
   function applyStaticI18n(lang) {
     const l = lang || window.MC_LANG();
-    document.documentElement.lang = l === 'zh' ? 'zh-CN' : 'en';
-    document.querySelectorAll('[data-i18n]').forEach((el) => {
-      const key = el.getAttribute('data-i18n');
-      const text = window.MC_T(key, l);
-      if (el.tagName === 'OPTION') el.textContent = text;
-      else el.textContent = text;
-    });
+    window.MC_APPLY_I18N(document.documentElement, l);
   }
 
   const supportModal = document.getElementById('supportModal');

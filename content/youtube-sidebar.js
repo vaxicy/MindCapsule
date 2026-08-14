@@ -210,11 +210,8 @@
       langBtn.title = t('uiLang', lang);
     }
     applyI18nToPanel();
-    // Persist into existing mc_settings (merge, not overwrite).
-    chrome.storage.local.get({ mc_settings: {} }, (res) => {
-      const settings = Object.assign({}, res.mc_settings || {}, { uiLang: lang });
-      chrome.storage.local.set({ mc_settings: settings });
-    });
+    // Persist so popup and Options page stay in sync.
+    window.MC_PERSIST_LANG(lang);
     // Re-render an already-generated result in the new language.
     const resultEl = document.getElementById('mc-result');
     if (resultEl && !resultEl.hidden && lastResult) {
@@ -771,63 +768,63 @@
   }
 
   function init() {
-    // Apply stored UI language before building the panel.
-    window.MC_LOAD_LANG().then((stored) => {
-      lang = stored;
-      // Re-apply translations to the already-built panel, if any.
-      if (panelRoot) applyI18nToPanel();
+    // Load the persisted UI language first, then build the panel. This prevents
+    // the panel from briefly appearing in the browser-default language and then
+    // switching, and keeps it in sync with the popup / Options page.
+    window.MC_LOAD_LANG().then((storedLang) => {
+      lang = storedLang;
+
+      // Keep the panel in sync when the UI language changes elsewhere
+      // (popup or Options page wrote mc_settings.uiLang).
+      chrome.storage.onChanged.addListener((changes, area) => {
+        if (area !== 'local' || !changes[STORAGE_KEYS.SETTINGS]) return;
+        const newVal = changes[STORAGE_KEYS.SETTINGS].newValue;
+        const newLang = newVal && newVal.uiLang;
+        if (newLang !== 'zh' && newLang !== 'en') return;
+        if (newLang === lang) return;
+        lang = newLang;
+        applyI18nToPanel();
+        const resultEl = document.getElementById('mc-result');
+        if (resultEl && !resultEl.hidden && lastResult) {
+          renderResult(lastResult);
+        }
+        if (selectedTrack) {
+          const translateLabel = selectedTrack.translateTo ? ` → ${selectedTrack.translateTo}` : '';
+          const trackName = (selectedTrack.name || selectedTrack.languageCode) || t('autoCaption', lang);
+          const kindLabel = selectedTrack.kind === 'asr' ? t('autoCaption', lang) : t('manualCaption', lang);
+          setStatusLine(`${trackName}${translateLabel} · ${kindLabel}`);
+        }
+      });
+
+      // inject.js is now declared in manifest.json as a MAIN-world content script
+      // running at document_start, so it is already loaded and posting messages.
+      // We no longer inject it manually from here.
+
+      window.addEventListener('message', onVideoMeta);
+
+      // If the panel is built but no VIDEO_META arrives within 4s (e.g. the
+      // isolated-world listener wasn't ready when inject.js first posted), ask
+      // main world to re-read the title. This avoids a permanent "未获取到标题".
+      setTimeout(() => {
+        if (!currentTitle) {
+          window.postMessage({ source: 'MindCapsule', type: 'REQUEST_VIDEO_META' }, '*');
+        }
+      }, 4000);
+
+      const tryInject = () => {
+        if (!document.getElementById('mindcapsule-panel')) {
+          loadPanelState().then(() => {
+            buildPanel();
+            // Captions may have already arrived before panel built; refresh them now.
+            if (pendingCaptions || captionTracks.length) refreshCaptions();
+          });
+        }
+        if (!document.getElementById('mindcapsule-panel')) {
+          setTimeout(tryInject, 1000);
+        }
+      };
+      tryInject();
     });
-
-    // Keep the panel in sync when the UI language changes elsewhere
-    // (popup or Options page wrote mc_settings.uiLang).
-    chrome.storage.onChanged.addListener((changes, area) => {
-      if (area !== 'local' || !changes[STORAGE_KEYS.SETTINGS]) return;
-      const newVal = changes[STORAGE_KEYS.SETTINGS].newValue;
-      const newLang = newVal && newVal.uiLang;
-      if (newLang !== 'zh' && newLang !== 'en') return;
-      if (newLang === lang) return;
-      lang = newLang;
-      applyI18nToPanel();
-      const resultEl = document.getElementById('mc-result');
-      if (resultEl && !resultEl.hidden && lastResult) {
-        renderResult(lastResult);
-      }
-      if (selectedTrack) {
-        const translateLabel = selectedTrack.translateTo ? ` → ${selectedTrack.translateTo}` : '';
-        const trackName = (selectedTrack.name || selectedTrack.languageCode) || t('autoCaption', lang);
-        const kindLabel = selectedTrack.kind === 'asr' ? t('autoCaption', lang) : t('manualCaption', lang);
-        setStatusLine(`${trackName}${translateLabel} · ${kindLabel}`);
-      }
-    });
-
-    // inject.js is now declared in manifest.json as a MAIN-world content script
-    // running at document_start, so it is already loaded and posting messages.
-    // We no longer inject it manually from here.
-
-    window.addEventListener('message', onVideoMeta);
-
-    // If the panel is built but no VIDEO_META arrives within 4s (e.g. the
-    // isolated-world listener wasn't ready when inject.js first posted), ask
-    // main world to re-read the title. This avoids a permanent "未获取到标题".
-    setTimeout(() => {
-      if (!currentTitle) {
-        window.postMessage({ source: 'MindCapsule', type: 'REQUEST_VIDEO_META' }, '*');
-      }
-    }, 4000);
-
-    const tryInject = () => {
-      if (!document.getElementById('mindcapsule-panel')) {
-        loadPanelState().then(() => {
-          buildPanel();
-          // Captions may have already arrived before panel built; refresh them now.
-          if (pendingCaptions || captionTracks.length) refreshCaptions();
-        });
-      }
-      if (!document.getElementById('mindcapsule-panel')) {
-        setTimeout(tryInject, 1000);
-      }
-    };
-    tryInject();
   }
 
   init();
