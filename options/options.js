@@ -45,9 +45,9 @@
       els.modelField.hidden = true;
     } else {
       els.modelField.hidden = false;
-      const hintKey = provider === PROVIDERS.OPENAI ? 'openAIModel' : 'siliconFlowModel';
       const defaultModel = defaultModelFor(provider);
-      els.modelHint.textContent = window.MC_T(hintKey, window.MC_LANG()) + ': ' + defaultModel;
+      els.model.placeholder = defaultModel;
+      els.modelHint.textContent = window.MC_T('useDefaultModel', window.MC_LANG());
       if (prevProvider && provider !== prevProvider) {
         const prevDefault = defaultModelFor(prevProvider);
         const current = els.model.value.trim();
@@ -68,6 +68,7 @@
     els.endpoint.value = settings.endpoint || '';
     const defaultModel = els.provider.value === PROVIDERS.OPENAI ? OPENAI_DEFAULT_MODEL : SILICONFLOW_DEFAULT_MODEL;
     els.model.value = settings.model || defaultModel;
+    els.model.placeholder = defaultModel;
     els.customModel.value = settings.customModel || '';
     updateUI();
   }
