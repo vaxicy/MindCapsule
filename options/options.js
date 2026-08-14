@@ -40,10 +40,16 @@
   }
 
   function setupSupportModal() {
-    const openBtn = document.getElementById('supportAuthorBtn');
+    const openBlock = document.getElementById('supportAuthorBlock');
     const wechatBtn = document.getElementById('wechatTipBtn');
-    if (openBtn) {
-      openBtn.addEventListener('click', () => openModal(supportModal));
+    if (openBlock) {
+      openBlock.addEventListener('click', () => openModal(supportModal));
+      openBlock.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          openModal(supportModal);
+        }
+      });
     }
     if (wechatBtn) {
       wechatBtn.addEventListener('click', () => {
