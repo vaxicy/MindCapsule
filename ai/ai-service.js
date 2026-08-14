@@ -1,6 +1,19 @@
 // Unified AI service for SiliconFlow OpenAI-compatible and custom OpenAI endpoints.
 // API key is read from chrome.storage.local; never hard-coded.
 (function () {
+  // Strip markdown code fences and any stray prose from a model response so we
+  // can reliably JSON.parse it even when the model wraps the payload in ```json.
+  function cleanJson(raw) {
+    if (raw == null) return '';
+    let s = String(raw).trim();
+    s = s.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '');
+    const first = s.indexOf('{');
+    const last = s.lastIndexOf('}');
+    if (first !== -1 && last !== -1 && last > first) {
+      s = s.slice(first, last + 1);
+    }
+    return s.trim();
+  }
   const { PROVIDERS, SILICONFLOW_ENDPOINT, SILICONFLOW_DEFAULT_MODEL, OPENAI_ENDPOINT, OPENAI_DEFAULT_MODEL } = window.MC_CONSTANTS;
 
   async function getSettings() {
@@ -74,6 +87,7 @@
 
     const systemPrompt = `You are MindCapsule, a learning assistant that converts YouTube transcripts into structured knowledge notes.
 Always respond in JSON format with exactly these keys: tldr (one-sentence summary), summary, keyInsights (array), timeline (array of {time, content}), actionItems (array).
+CRITICAL: Respond with ONLY raw JSON and nothing else. No markdown code blocks, no explanations, no commentary before or after the JSON.
 Rules:
 - "tldr": a single punchy one-sentence takeaway, max 30 words.
 - "summary": 3-5 sentences capturing the core idea.
@@ -92,7 +106,7 @@ ${langInstruction}`;
     ], signal);
 
     try {
-      const json = JSON.parse(raw);
+      const json = JSON.parse(cleanJson(raw));
       return {
         tldr: json.tldr || '',
         summary: json.summary || '',
@@ -102,12 +116,23 @@ ${langInstruction}`;
       };
     } catch (e) {
       // Fallback: return the raw text as summary if JSON parsing fails.
-      return {
-        summary: raw || '',
-        keyInsights: [],
-        timeline: [],
-        actionItems: []
-      };
+      try {
+        const json = JSON.parse(cleanJson(raw));
+        return {
+          tldr: json.tldr || '',
+          summary: json.summary || '',
+          keyInsights: Array.isArray(json.keyInsights) ? json.keyInsights : [],
+          timeline: Array.isArray(json.timeline) ? json.timeline : [],
+          actionItems: Array.isArray(json.actionItems) ? json.actionItems : []
+        };
+      } catch (_) {
+        return {
+          summary: raw || '',
+          keyInsights: [],
+          timeline: [],
+          actionItems: []
+        };
+      }
     }
   }
 

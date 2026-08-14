@@ -274,7 +274,7 @@
       if (opts[0]) opts[0].textContent = t('copyMarkdown', lang);
       if (opts[1]) opts[1].textContent = t('copyPlainText', lang);
       const action = copyDropdown.querySelector('.mc-export-action');
-      if (action) action.textContent = t('copyAs', lang);
+      if (action) action.textContent = t('copy', lang);
     }
     const expDropdown = document.querySelector('#mc-result .mc-dropdown.mc-dropdown-export');
     if (expDropdown) {
@@ -286,7 +286,7 @@
       if (opts[1]) opts[1].textContent = t('exportTxt', lang);
       if (opts[2]) opts[2].textContent = t('exportPdf', lang);
       const action = expDropdown.querySelector('.mc-export-action');
-      if (action) action.textContent = t('exportAs', lang);
+      if (action) action.textContent = t('export', lang);
     }
     const redetect = document.getElementById('mc-redetect');
     if (redetect) redetect.textContent = t('redetectCaptions', lang);
@@ -488,7 +488,7 @@
             <div class="mc-dropdown-option" data-value="md">${t('copyMarkdown', lang)}</div>
             <div class="mc-dropdown-option" data-value="txt">${t('copyPlainText', lang)}</div>
           </div>
-          <button class="mc-export-action" type="button" data-group="copy" data-value="md">${t('copyAs', lang)}</button>
+          <button class="mc-export-action" type="button" data-group="copy" data-value="md">${t('copy', lang)}</button>
         </div>
         <div class="mc-dropdown mc-dropdown-export" data-group="export">
           <button class="mc-dropdown-trigger" type="button" title="${t('exportAs', lang)}">
@@ -500,7 +500,7 @@
             <div class="mc-dropdown-option" data-value="txt">${t('exportTxt', lang)}</div>
             <div class="mc-dropdown-option" data-value="pdf">${t('exportPdf', lang)}</div>
           </div>
-          <button class="mc-export-action" type="button" data-group="export" data-value="md">${t('exportAs', lang)}</button>
+          <button class="mc-export-action" type="button" data-group="export" data-value="md">${t('export', lang)}</button>
         </div>
       </div>
       ${sections.join('\n')}

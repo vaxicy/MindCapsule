@@ -19,6 +19,22 @@ function stopKeepAlive() {
   chrome.alarms.clear(KEEP_ALIVE_ALARM);
 }
 
+// Strip markdown code fences and any stray prose from a model response so we
+// can reliably JSON.parse it even when the model wraps the payload in ```json.
+function cleanJson(raw) {
+  if (raw == null) return '';
+  let s = String(raw).trim();
+  // Drop ```json / ``` fences (with or without a language tag).
+  s = s.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '');
+  // Take only the outermost {...} block (slice from first { to last }).
+  const first = s.indexOf('{');
+  const last = s.lastIndexOf('}');
+  if (first !== -1 && last !== -1 && last > first) {
+    s = s.slice(first, last + 1);
+  }
+  return s.trim();
+}
+
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.type === 'START_ANALYSIS') {
     startKeepAlive();
@@ -64,6 +80,7 @@ async function handleAnalysis(payload) {
 
   const systemPrompt = `You are MindCapsule, a learning assistant that converts YouTube transcripts into structured knowledge notes.
 Always respond in JSON format with exactly these keys: tldr (one-sentence summary), summary, keyInsights (array), timeline (array of {time, content}), actionItems (array).
+CRITICAL: Respond with ONLY raw JSON and nothing else. No markdown code blocks, no explanations, no commentary before or after the JSON.
 Rules:
 - "tldr": a single punchy one-sentence takeaway, max 30 words.
 - "summary": 3-5 sentences capturing the core idea.
@@ -108,7 +125,7 @@ ${langInstruction}`;
     const raw = data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
 
     try {
-      const json = JSON.parse(raw);
+      const json = JSON.parse(cleanJson(raw));
       return {
         tldr: json.tldr || '',
         summary: json.summary || '',
@@ -117,7 +134,19 @@ ${langInstruction}`;
         actionItems: Array.isArray(json.actionItems) ? json.actionItems : []
       };
     } catch (e) {
-      return { tldr: '', summary: raw || '', keyInsights: [], timeline: [], actionItems: [] };
+      const cleaned = cleanJson(raw);
+      try {
+        const json = JSON.parse(cleaned);
+        return {
+          tldr: json.tldr || '',
+          summary: json.summary || '',
+          keyInsights: Array.isArray(json.keyInsights) ? json.keyInsights : [],
+          timeline: Array.isArray(json.timeline) ? json.timeline : [],
+          actionItems: Array.isArray(json.actionItems) ? json.actionItems : []
+        };
+      } catch (_) {
+        return { tldr: '', summary: raw || '', keyInsights: [], timeline: [], actionItems: [] };
+      }
     }
   } finally {
     clearTimeout(totalTimer);
