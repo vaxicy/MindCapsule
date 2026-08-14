@@ -65,7 +65,17 @@ const I18N = Object.freeze({
     generatedAt: 'Generated',
     source: 'Source',
     openOnYoutube: 'Open on YouTube',
-    tldr: 'Key Takeaway'
+    tldr: 'Key Takeaway',
+    supportAuthor: 'Support Author',
+    supportAuthorOpen: 'Buy me a coffee',
+    supportAuthorTitle: 'Support Author',
+    supportAuthorSub: 'Your support keeps development going. Thank you!',
+    wechatTip: 'WeChat Tip',
+    wechatTipDesc: 'Scan the WeChat tip QR code',
+    paypalTip: 'PayPal',
+    paypalTipDesc: 'Open PayPal to pay',
+    scanToTip: 'Scan to Tip',
+    scanHint: 'Scan with WeChat to support the author'
   },
   zh: {
     settingsTitle: 'MindCapsule 设置',
@@ -132,7 +142,17 @@ const I18N = Object.freeze({
     generatedAt: '生成时间',
     source: '来源',
     openOnYoutube: '在 YouTube 打开',
-    tldr: '一句话总结'
+    tldr: '一句话总结',
+    supportAuthor: '支持作者',
+    supportAuthorOpen: '打赏支持',
+    supportAuthorTitle: '支持作者',
+    supportAuthorSub: '你的支持是持续开发的动力，谢谢！',
+    wechatTip: '微信赞赏',
+    wechatTipDesc: '扫码使用微信赞赏码',
+    paypalTip: 'PayPal 支持',
+    paypalTipDesc: '前往 PayPal 付款',
+    scanToTip: '扫码赞赏',
+    scanHint: '使用微信扫一扫，赞赏作者'
   }
 });
 

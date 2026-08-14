@@ -67,7 +67,41 @@
         <button type="submit" class="mc-btn mc-btn-primary" data-i18n="save">保存设置</button>
         <span id="saveStatus" class="mc-status"></span>
       </div>
+
+      <div class="mc-support-block">
+        <span class="mc-support-label" data-i18n="supportAuthor">支持作者</span>
+        <button type="button" id="supportAuthorBtn" class="mc-btn mc-btn-support" data-i18n="supportAuthorOpen">打赏支持</button>
+      </div>
     </form>
+  </div>
+
+  <div id="supportModal" class="mc-modal" hidden>
+    <div class="mc-modal-backdrop" data-close="1"></div>
+    <div class="mc-modal-box" role="dialog" aria-modal="true" aria-label="Support Author">
+      <button type="button" class="mc-modal-close" data-close="1" aria-label="Close">&times;</button>
+      <h2 class="mc-modal-title" data-i18n="supportAuthorTitle">支持作者</h2>
+      <p class="mc-modal-sub" data-i18n="supportAuthorSub">你的支持是持续开发的动力，谢谢！</p>
+      <div class="mc-support-options">
+        <button type="button" class="mc-support-card" id="wechatTipBtn">
+          <span class="mc-support-card-name" data-i18n="wechatTip">微信赞赏</span>
+          <span class="mc-support-card-desc" data-i18n="wechatTipDesc">扫码使用微信赞赏码</span>
+        </button>
+        <a class="mc-support-card" id="paypalTipBtn" href="https://www.paypal.com/ncp/payment/BYP52XKB4DSKS" target="_blank" rel="noopener noreferrer">
+          <span class="mc-support-card-name" data-i18n="paypalTip">PayPal 支持</span>
+          <span class="mc-support-card-desc" data-i18n="paypalTipDesc">前往 PayPal 付款</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div id="qrModal" class="mc-modal" hidden>
+    <div class="mc-modal-backdrop" data-close="2"></div>
+    <div class="mc-modal-box mc-modal-box-qr" role="dialog" aria-modal="true" aria-label="WeChat QR">
+      <button type="button" class="mc-modal-close" data-close="2" aria-label="Close">&times;</button>
+      <h2 class="mc-modal-title" data-i18n="scanToTip">扫码赞赏</h2>
+      <img id="wechatQr" class="mc-qr-img" src="../store-assets/%E5%BE%AE%E4%BF%A1%E8%B5%9E%E8%B5%8F%E7%A0%81.png" alt="WeChat tip QR code">
+      <p class="mc-modal-sub" data-i18n="scanHint">使用微信扫一扫，赞赏作者</p>
+    </div>
   </div>
 
   <script src="../shared/storage-keys.js"></script>

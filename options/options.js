@@ -29,6 +29,42 @@
     });
   }
 
+  const supportModal = document.getElementById('supportModal');
+  const qrModal = document.getElementById('qrModal');
+
+  function openModal(modal) {
+    modal.hidden = false;
+  }
+  function closeModal(modal) {
+    modal.hidden = true;
+  }
+
+  function setupSupportModal() {
+    const openBtn = document.getElementById('supportAuthorBtn');
+    const wechatBtn = document.getElementById('wechatTipBtn');
+    if (openBtn) {
+      openBtn.addEventListener('click', () => openModal(supportModal));
+    }
+    if (wechatBtn) {
+      wechatBtn.addEventListener('click', () => {
+        openModal(qrModal);
+      });
+    }
+    document.querySelectorAll('[data-close]').forEach((el) => {
+      el.addEventListener('click', () => {
+        const target = el.getAttribute('data-close');
+        if (target === '1') closeModal(supportModal);
+        else if (target === '2') closeModal(qrModal);
+      });
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeModal(supportModal);
+        closeModal(qrModal);
+      }
+    });
+  }
+
   function defaultModelFor(provider) {
     if (provider === PROVIDERS.OPENAI) return OPENAI_DEFAULT_MODEL;
     if (provider === PROVIDERS.SILICONFLOW) return SILICONFLOW_DEFAULT_MODEL;
@@ -129,6 +165,7 @@
 
   applyStaticI18n();
   updateUI();           // avoid flash of old UI before settings load
+  setupSupportModal();
   loadSettings().then(() => {
     attachAutoSave();
   });

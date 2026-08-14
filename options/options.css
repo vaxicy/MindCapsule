@@ -173,3 +173,148 @@ body {
 .mc-status.visible {
   opacity: 1;
 }
+
+.mc-support-block {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 28px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+}
+
+.mc-support-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.mc-btn-support {
+  background: transparent;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+}
+
+.mc-btn-support:hover {
+  background: var(--accent-hover);
+  color: #000000;
+}
+
+.mc-btn-support:active {
+  transform: translateY(1px);
+}
+
+.mc-modal {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.mc-modal[hidden] {
+  display: none;
+}
+
+.mc-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+}
+
+.mc-modal-box {
+  position: relative;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 28px;
+  width: 360px;
+  max-width: calc(100vw - 32px);
+  box-shadow: var(--shadow);
+  text-align: center;
+}
+
+.mc-modal-box-qr {
+  width: 320px;
+}
+
+.mc-modal-close {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  background: transparent;
+  border: none;
+  color: var(--sub);
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.mc-modal-close:hover {
+  color: var(--text);
+}
+
+.mc-modal-title {
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0 0 8px;
+}
+
+.mc-modal-sub {
+  font-size: 13px;
+  color: var(--sub);
+  margin: 0 0 20px;
+}
+
+.mc-support-options {
+  display: flex;
+  gap: 14px;
+}
+
+.mc-support-card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 18px 12px;
+  background: #0a0a0a;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  text-decoration: none;
+  cursor: pointer;
+  transition: border-color 0.15s, transform 0.05s;
+}
+
+.mc-support-card:hover {
+  border-color: var(--accent);
+}
+
+.mc-support-card:active {
+  transform: translateY(1px);
+}
+
+.mc-support-card-name {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.mc-support-card-desc {
+  font-size: 12px;
+  color: var(--sub);
+  text-align: center;
+}
+
+.mc-qr-img {
+  width: 220px;
+  height: 220px;
+  object-fit: contain;
+  border-radius: 8px;
+  background: #ffffff;
+  margin: 0 auto;
+  display: block;
+}
