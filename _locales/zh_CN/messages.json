@@ -1,6 +1,6 @@
 {
   "ext_name": {
-    "message": "MindCapsule 知识胶囊",
+    "message": "MindCapsule for YouTube",
     "description": "Extension name shown in store and toolbar"
   },
   "ext_short_name": {
@@ -8,11 +8,11 @@
     "description": "Short extension name"
   },
   "ext_description": {
-    "message": "用 AI 把 YouTube 长视频变成结构化知识胶囊。",
+    "message": "AI 一键总结 YouTube 视频，生成结构化知识胶囊，帮你智能总结与回顾。",
     "description": "Store listing description"
   },
   "action_title": {
-    "message": "MindCapsule - YouTube 学习助手",
+    "message": "MindCapsule for YouTube - AI 视频总结助手",
     "description": "Toolbar tooltip"
   }
 }

@@ -1,6 +1,6 @@
-# MindCapsule
+# MindCapsule for YouTube
 
-MindCapsule 是一个 Chrome 扩展，用 AI 把 YouTube 长视频变成结构化的知识胶囊。
+MindCapsule for YouTube 是一个 Chrome 扩展，用 AI 帮你智能总结 YouTube 视频，变成结构化的知识胶囊。
 
 ## 功能
 

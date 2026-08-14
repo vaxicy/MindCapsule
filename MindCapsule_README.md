@@ -1,8 +1,8 @@
-# MindCapsule - AI Video Notes Chrome Extension
+# MindCapsule for YouTube - AI Video Summary Chrome Extension
 
 ## Product Overview
 
-MindCapsule is an AI-powered Chrome Extension that transforms long-form YouTube videos into structured knowledge notes.
+MindCapsule for YouTube is an AI-powered Chrome Extension that transforms long-form YouTube videos into structured knowledge capsules.
 
 The extension integrates into YouTube pages and provides an AI-powered sidebar that helps users quickly understand video content.
 
