@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MindCapsule Privacy Policy | 隐私权政策</title>
+  <style>
+    :root {
+      --bg: #f8f9fa;
+      --surface: #ffffff;
+      --text: #1f2328;
+      --muted: #57606a;
+      --accent: #2563eb;
+      --accent-hover: #1d4ed8;
+      --border: #d0d7de;
+      --shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+    }
+    .container {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+    h1 {
+      font-size: 26px;
+      margin: 0 0 8px;
+      font-weight: 700;
+    }
+    .subtitle {
+      color: var(--muted);
+      font-size: 15px;
+    }
+    .lang-tabs {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 28px;
+    }
+    .lang-tab {
+      padding: 8px 18px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: var(--surface);
+      color: var(--text);
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .lang-tab:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+    .lang-tab.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+    .lang-content {
+      display: none;
+      background: var(--surface);
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      padding: 32px;
+    }
+    .lang-content.active {
+      display: block;
+    }
+    h2 {
+      font-size: 18px;
+      margin-top: 28px;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+    h2:first-child {
+      margin-top: 0;
+    }
+    p {
+      margin: 12px 0;
+    }
+    ul {
+      margin: 12px 0;
+      padding-left: 22px;
+    }
+    li {
+      margin: 6px 0;
+    }
+    a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+    .contact {
+      margin-top: 24px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 14px;
+    }
+    @media (max-width: 560px) {
+      .container { padding: 24px 16px; }
+      .lang-content { padding: 22px; }
+      h1 { font-size: 22px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>MindCapsule Privacy Policy</h1>
+      <div class="subtitle">Last updated: August 15, 2026</div>
+    </header>
+
+    <nav class="lang-tabs" aria-label="Language switcher">
+      <button class="lang-tab active" data-lang="en">English</button>
+      <button class="lang-tab" data-lang="zh">中文</button>
+    </nav>
+
+    <section class="lang-content active" data-lang="en" lang="en">
+      <h2>Overview</h2>
+      <p>MindCapsule is a YouTube learning assistant. It helps you turn YouTube videos into structured knowledge notes by extracting the video title and publicly available captions/transcript, then sending them to an AI service provider that <strong>you</strong> configure.</p>
+      <p>This Privacy Policy explains what data is involved, how it is handled, and what stays on your device.</p>
+
+      <h2>Information We Access</h2>
+      <p>When you use MindCapsule on a YouTube video page, the extension reads only the information necessary to generate your notes:</p>
+      <ul>
+        <li>The title of the current YouTube video.</li>
+        <li>The publicly available captions/transcript of the video (if enabled by the video creator).</li>
+      </ul>
+      <p>We do <strong>not</strong> access your YouTube account, viewing history, search history, likes, subscriptions, comments, or any other personal YouTube data.</p>
+
+      <h2>How AI Processing Works</h2>
+      <p>MindCapsule does not provide a built-in AI service. Instead, it sends the video title and captions directly to the AI provider you choose:</p>
+      <ul>
+        <li><strong>SiliconFlow</strong> (api.siliconflow.cn) when you select it in settings.</li>
+        <li>Any <strong>OpenAI-compatible endpoint</strong> you enter yourself when you select "Custom".</li>
+      </ul>
+      <p>The request is made using the API key that <strong>you</strong> provide and store in the extension. The request goes directly from your browser to your chosen provider. We do not route, intercept, copy, or store the content on our servers.</p>
+
+      <h2>Data Stored Locally</h2>
+      <p>All of the following are stored only in your own browser using Chrome storage APIs (chrome.storage.local and chrome.storage.sync):</p>
+      <ul>
+        <li>Your AI provider settings and API key.</li>
+        <li>Your language and output preferences.</li>
+        <li>Recently generated knowledge capsules.</li>
+      </ul>
+      <p>This data never leaves your device unless you explicitly export it yourself.</p>
+
+      <h2>Data We Do Not Collect</h2>
+      <p>We do not collect any of the following:</p>
+      <ul>
+        <li>Personal identifiers such as your name, email address, phone number, or location.</li>
+        <li>Browsing history or search queries outside of the active YouTube video.</li>
+        <li>Payment or financial information.</li>
+        <li>Cookies or tracking identifiers.</li>
+      </ul>
+      <p>We do not sell, rent, or share your data with advertisers, analytics providers, or any other third parties.</p>
+
+      <h2>Third-Party Services</h2>
+      <p>Your chosen AI provider is the only third party that receives video title and caption data. Please review their privacy policy to understand how they handle the data you send them.</p>
+
+      <h2>Children's Privacy</h2>
+      <p>MindCapsule is not intended for children under the age of 13. We do not knowingly collect any information from children.</p>
+
+      <h2>Changes to This Policy</h2>
+      <p>We may update this Privacy Policy from time to time. Any changes will be posted on this page with an updated "Last updated" date.</p>
+
+      <div class="contact">
+        If you have any questions about this Privacy Policy, please contact us at <a href="mailto:huangzero2004@gmail.com">huangzero2004@gmail.com</a>.
+      </div>
+    </section>
+
+    <section class="lang-content" data-lang="zh" lang="zh-CN">
+      <h2>概述</h2>
+      <p>MindCapsule 是一款 YouTube 学习助手。它通过读取当前 YouTube 视频的标题和公开字幕/文稿，并发送到你自行配置的 AI 服务商，帮助你生成结构化的知识笔记。</p>
+      <p>本隐私权政策说明扩展会访问哪些数据、如何处理这些数据，以及哪些数据仅保留在你的设备上。</p>
+
+      <h2>我们访问的信息</h2>
+      <p>当你在 YouTube 视频页面使用 MindCapsule 时，扩展仅读取生成笔记所必需的信息：</p>
+      <ul>
+        <li>当前 YouTube 视频的标题。</li>
+        <li>该视频创作者已公开的公开字幕/文稿。</li>
+      </ul>
+      <p>我们<strong>不会</strong>访问你的 YouTube 账号、观看历史、搜索历史、点赞、订阅、评论或任何其他个人 YouTube 数据。</p>
+
+      <h2>AI 处理方式</h2>
+      <p>MindCapsule 不提供内置 AI 服务。它会将视频标题和字幕直接发送到你选择的 AI 服务商：</p>
+      <ul>
+        <li>当你在设置中选择 SiliconFlow 时，请求发送至 <strong>api.siliconflow.cn</strong>。</li>
+        <li>当你选择"自定义"并输入任意 OpenAI 兼容端点时，请求发送至你填写的地址。</li>
+      </ul>
+      <p>请求使用你本人在扩展中提供并保存的 API 密钥，直接从你的浏览器发送到你选择的服务商。我们不会中转、截取、复制或在自己的服务器上存储这些内容。</p>
+
+      <h2>本地存储的数据</h2>
+      <p>以下内容全部通过 Chrome 存储 API（chrome.storage.local 与 chrome.storage.sync）保存在你自己的浏览器中：</p>
+      <ul>
+        <li>你的 AI 服务商设置与 API 密钥。</li>
+        <li>你的语言与输出偏好设置。</li>
+        <li>最近生成的知识胶囊。</li>
+      </ul>
+      <p>除非你主动自行导出，否则这些数据不会离开你的设备。</p>
+
+      <h2>我们不收集的数据</h2>
+      <p>我们不会收集以下任何信息：</p>
+      <ul>
+        <li>姓名、电子邮箱、电话号码、位置等个人身份信息。</li>
+        <li>当前 YouTube 视频页面之外的浏览历史或搜索记录。</li>
+        <li>支付或财务信息。</li>
+        <li>Cookie 或追踪标识符。</li>
+      </ul>
+      <p>我们不会向广告商、分析服务商或任何其他第三方出售、出租或共享你的数据。</p>
+
+      <h2>第三方服务</h2>
+      <p>你选择的 AI 服务商是唯一会接收到视频标题和字幕数据的第三方。请查阅该服务商的隐私政策，以了解他们如何处理你发送的数据。</p>
+
+      <h2>未成年人隐私</h2>
+      <p>MindCapsule 不面向 13 岁以下儿童。我们不会故意收集任何来自儿童的信息。</p>
+
+      <h2>政策更新</h2>
+      <p>我们可能会不时更新本隐私权政策。任何变更都会发布在本页面，并更新上方的"最后更新"日期。</p>
+
+      <div class="contact">
+        如有任何关于本隐私权政策的问题，请通过 <a href="mailto:huangzero2004@gmail.com">huangzero2004@gmail.com</a> 联系我们。
+      </div>
+    </section>
+  </div>
+
+  <script>
+    (function () {
+      const STORAGE_KEY = 'mindcapsule_privacy_lang';
+      const tabs = document.querySelectorAll('.lang-tab');
+      const panels = document.querySelectorAll('.lang-content');
+      const html = document.documentElement;
+
+      function detectDefaultLang() {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved === 'en' || saved === 'zh') return saved;
+        const browser = (navigator.language || navigator.userLanguage || 'en').toLowerCase();
+        return browser.startsWith('zh') ? 'zh' : 'en';
+      }
+
+      function switchLang(lang) {
+        localStorage.setItem(STORAGE_KEY, lang);
+        html.lang = lang === 'zh' ? 'zh-CN' : 'en';
+        tabs.forEach(t => t.classList.toggle('active', t.dataset.lang === lang));
+        panels.forEach(p => p.classList.toggle('active', p.dataset.lang === lang));
+      }
+
+      tabs.forEach(t => t.addEventListener('click', () => switchLang(t.dataset.lang)));
+      switchLang(detectDefaultLang());
+    })();
+  </script>
+</body>
+</html>
