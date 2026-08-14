@@ -260,72 +260,22 @@
   margin-bottom: 4px;
 }
 
-/* Source block at the top of the result. */
-.mc-source {
-  background: #1a1a1a;
-  border: 1px solid #2a2a2a;
-  border-radius: 8px;
-  padding: 8px 10px;
-  margin-bottom: 14px;
-}
-
-/* Two-column source rows: label + value. */
-.mc-source-row {
-  display: flex;
-  gap: 8px;
-  align-items: baseline;
-  margin-top: 6px;
-}
-
-.mc-source-row:first-of-type {
-  margin-top: 0;
-}
-
-.mc-source-label {
-  color: #7c8288;
-  font-size: 11px;
-  min-width: 56px;
-  flex-shrink: 0;
-}
-
-.mc-source-value {
+/* Video title shown as the first result section. */
+.mc-section-title p.mc-result-title {
   color: #ffffff;
-  font-size: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.5;
+  margin: 0;
   word-break: break-word;
-  flex: 1;
 }
 
-.mc-source-value.mc-source-missing {
+.mc-result-title.mc-result-title-missing {
   color: #7c8288;
+  font-weight: 400;
 }
 
-.mc-source-value a,
-.mc-source-link {
-  color: #8ab4f8;
-  text-decoration: underline;
-}
-
-.mc-source-link:hover,
-.mc-source-value a:hover {
-  color: #aecbfa;
-}
-
-.mc-source-arrow {
-  display: inline-block;
-  margin-left: 4px;
-  font-size: 10px;
-  line-height: 1;
-}
-
-/* Heading spacing inside the source / TL;DR section boxes. */
-.mc-source h3 {
-  margin: 0 0 8px;
-}
-
+/* Heading spacing inside section boxes. */
 .mc-tldr h3 {
   margin: 0 0 8px;
-}
-
-.mc-unverified {
-  color: #e8a33d;
 }

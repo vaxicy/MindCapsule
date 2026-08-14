@@ -13,7 +13,6 @@
     endpointField: $('#endpointField'),
     model: $('#model'),
     modelField: $('#modelField'),
-    modelHint: $('#modelHint'),
     customModel: $('#customModel'),
     customModelField: $('#customModelField'),
     saveStatus: $('#saveStatus')
@@ -47,7 +46,6 @@
       els.modelField.hidden = false;
       const defaultModel = defaultModelFor(provider);
       els.model.placeholder = defaultModel;
-      els.modelHint.textContent = window.MC_T('useDefaultModel', window.MC_LANG());
       if (prevProvider && provider !== prevProvider) {
         const prevDefault = defaultModelFor(prevProvider);
         const current = els.model.value.trim();

@@ -33,6 +33,7 @@ body {
 .mc-header {
   display: flex;
   align-items: center;
+  gap: 12px;
   margin-bottom: 32px;
 }
 
@@ -40,6 +41,13 @@ body {
   font-size: 22px;
   font-weight: 700;
   margin: 0;
+}
+
+.mc-logo {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  object-fit: contain;
 }
 
 .mc-form {
