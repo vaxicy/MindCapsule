@@ -18,12 +18,12 @@
     saveStatus: $('#saveStatus')
   };
 
-  function applyStaticI18n() {
-    const lang = window.MC_LANG();
-    document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
+  function applyStaticI18n(lang) {
+    const l = lang || window.MC_LANG();
+    document.documentElement.lang = l === 'zh' ? 'zh-CN' : 'en';
     document.querySelectorAll('[data-i18n]').forEach((el) => {
       const key = el.getAttribute('data-i18n');
-      const text = window.MC_T(key, lang);
+      const text = window.MC_T(key, l);
       if (el.tagName === 'OPTION') el.textContent = text;
       else el.textContent = text;
     });
@@ -155,9 +155,11 @@
   const autoSave = debounce(() => persistSettings(true), 500);
 
   function attachAutoSave() {
-    [els.uiLang, els.outputLang].forEach((el) => {
-      el.addEventListener('change', () => persistSettings(true));
+    els.uiLang.addEventListener('change', async () => {
+      await persistSettings(true);
+      applyStaticI18n(els.uiLang.value);
     });
+    els.outputLang.addEventListener('change', () => persistSettings(true));
     els.provider.addEventListener('change', async () => {
       const saved = await chrome.storage.local.get(STORAGE_KEYS.SETTINGS);
       const prevProvider = saved[STORAGE_KEYS.SETTINGS]?.provider || els.provider.value;
@@ -173,6 +175,7 @@
   updateUI();           // avoid flash of old UI before settings load
   setupSupportModal();
   loadSettings().then(() => {
+    applyStaticI18n(els.uiLang.value);
     attachAutoSave();
   });
   els.form.addEventListener('submit', saveSettings);
@@ -188,7 +191,7 @@
       }
       // Re-translate the whole Options page when the UI language changes
       // elsewhere (e.g. the popup or YouTube panel toggled it).
-      applyStaticI18n();
+      applyStaticI18n(newVal.uiLang);
     }
   });
 })();
