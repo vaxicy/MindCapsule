@@ -418,7 +418,7 @@
     let header = `<section class="mc-section mc-source"><h3>${t('source', lang)}</h3>`;
     if (currentTitle) {
       if (currentVideoId) {
-        header += `<a class="mc-source-title" href="https://www.youtube.com/watch?v=${currentVideoId}" target="_blank" rel="noopener">${escapeHtml(currentTitle)}</a>`;
+        header += `<a class="mc-source-title" href="https://www.youtube.com/watch?v=${currentVideoId}" target="_blank" rel="noopener">${escapeHtml(currentTitle)}<span class="mc-source-arrow">↗</span></a>`;
       } else {
         header += `<div class="mc-source-title">${escapeHtml(currentTitle)}</div>`;
       }
@@ -427,6 +427,9 @@
           ? ` ✓`
           : ` · <span class="mc-unverified">${t('videoTitleUnverified', lang)}</span>`) +
         `</div>`;
+      if (currentVideoId) {
+        header += `<a class="mc-source-link" href="https://www.youtube.com/watch?v=${currentVideoId}" target="_blank" rel="noopener">${t('openOnYoutube', lang)}<span class="mc-source-arrow">↗</span></a>`;
+      }
     }
     header += `<div class="mc-source-time">${escapeHtml(genTime)}</div>`;
     header += `</section>`;

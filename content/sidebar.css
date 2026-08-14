@@ -273,15 +273,35 @@
   display: block;
   font-size: 12px;
   font-weight: 600;
-  color: #ffffff;
+  color: #8ab4f8;
   line-height: 1.4;
   word-break: break-word;
-  text-decoration: none;
+  text-decoration: underline;
 }
 
-a.mc-source-title:hover {
+.mc-source-title:hover {
+  color: #aecbfa;
+  text-decoration: underline;
+}
+
+.mc-source-arrow {
+  display: inline-block;
+  margin-left: 4px;
+  font-size: 10px;
+  line-height: 1;
+}
+
+.mc-source-link {
+  display: inline-flex;
+  align-items: center;
+  font-size: 11px;
   color: #8ab4f8;
   text-decoration: underline;
+  margin-top: 6px;
+}
+
+.mc-source-link:hover {
+  color: #aecbfa;
 }
 
 .mc-source-time {
@@ -295,10 +315,6 @@ a.mc-source-title:hover {
   font-size: 13px;
   font-weight: 600;
   color: #ffffff;
-  background: linear-gradient(90deg, #1f3a2e, #1a1a1a);
-  border-left: 3px solid #4caf7d;
-  border-radius: 8px;
-  padding: 10px 12px;
   line-height: 1.5;
   margin: 0;
 }

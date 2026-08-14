@@ -55,6 +55,7 @@ const I18N = Object.freeze({
     videoTitle: 'Video title',
     videoTitleUnverified: 'Cannot confirm this is the current video title',
     source: 'Source',
+    openOnYoutube: 'Open on YouTube',
     tldr: 'TL;DR'
   },
   zh: {
@@ -112,6 +113,7 @@ const I18N = Object.freeze({
     videoTitle: '视频标题',
     videoTitleUnverified: '无法确认是否为当前视频标题',
     source: '来源',
+    openOnYoutube: '在 YouTube 打开',
     tldr: '一句话总结'
   }
 });
