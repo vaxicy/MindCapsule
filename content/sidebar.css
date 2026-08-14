@@ -188,11 +188,16 @@
 }
 
 /* Custom dropdown: replaces native <select> so the picker never gets clipped
-   by the panel and never fires copy/download on selection. */
+   by the panel and never fires copy/download on selection.
+   Each column stacks the trigger above its action button with consistent
+   spacing and equal widths. */
 .mc-dropdown {
   position: relative;
   flex: 1;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .mc-dropdown-trigger {
@@ -258,7 +263,7 @@
 }
 
 .mc-export-action {
-  flex: 1;
+  width: 100%;
   padding: 7px 0;
   background: #1a1a1a;
   color: #cfcfcf;
