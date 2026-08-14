@@ -24,8 +24,18 @@
     const url = new URL(window.location.href);
     const videoId = url.searchParams.get('v') || '';
     const titleEl = document.querySelector('h1.title.style-scope.ytd-video-primary-info-renderer');
-    const title = titleEl ? titleEl.textContent.trim() : (document.title || '');
-    window.postMessage({ source: 'MindCapsule', type: 'VIDEO_META', payload: { videoId, title } }, '*');
+    let title = titleEl ? titleEl.textContent.trim() : (document.title || '');
+    // Strip the trailing " - YouTube" suffix that the document title carries.
+    title = title.replace(/\s*-\s*YouTube\s*$/i, '').trim();
+    // Verify this title actually belongs to the current video: compare the
+    // page's canonical link (or current URL) against the detected videoId.
+    let verified = false;
+    try {
+      const canon = document.querySelector('link[rel="canonical"]');
+      const checkUrl = canon ? canon.href : window.location.href;
+      verified = checkUrl.indexOf('v=' + videoId) !== -1;
+    } catch (e) { verified = false; }
+    window.postMessage({ source: 'MindCapsule', type: 'VIDEO_META', payload: { videoId, title, verified } }, '*');
   }
 
   function extractTracks(list) {

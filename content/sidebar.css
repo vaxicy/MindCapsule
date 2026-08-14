@@ -308,36 +308,13 @@
   line-height: 1.5;
 }
 
-/* Clickable timeline timestamps. */
-.mc-ts {
-  color: #8ab4f8;
-  text-decoration: none;
-  font-weight: 700;
-  white-space: nowrap;
+/* Video title label under the source title, with verification status. */
+.mc-source-vtitle {
+  font-size: 10px;
+  color: #7c8288;
+  margin-top: 3px;
 }
 
-.mc-ts:hover {
-  text-decoration: underline;
-}
-
-/* Action-item checklist. */
-.mc-checklist {
-  list-style: none;
-  padding-left: 0;
-}
-
-.mc-action-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  font-size: 12px;
-  line-height: 1.5;
-  color: #b0b0b0;
-  margin-bottom: 6px;
-}
-
-.mc-action-item input[type="checkbox"] {
-  margin-top: 2px;
-  flex-shrink: 0;
-  cursor: pointer;
+.mc-source-vtitle .mc-unverified {
+  color: #e8a33d;
 }

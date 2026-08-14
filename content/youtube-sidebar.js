@@ -5,6 +5,7 @@
   const ICON_URL = chrome.runtime.getURL('store-assets/icon48.png');
   let currentVideoId = '';
   let currentTitle = '';
+  let titleVerified = false;
   let panelRoot = null;
   let captionTracks = [];
   let selectedTrack = null;
@@ -400,10 +401,17 @@
     resultEl.hidden = false;
     const sections = [];
 
-    // Source header: title + link + generated time.
+    // Source header: title (with verification) + link + generated time.
     const genTime = new Date().toLocaleString(lang === 'zh' ? 'zh-CN' : 'en-US');
     let header = `<div class="mc-source">`;
-    if (currentTitle) header += `<div class="mc-source-title">${escapeHtml(currentTitle)}</div>`;
+    if (currentTitle) {
+      header += `<div class="mc-source-title">${escapeHtml(currentTitle)}</div>`;
+      header += `<div class="mc-source-vtitle">${t('videoTitle', lang)}` +
+        (titleVerified
+          ? ` ✓`
+          : ` · <span class="mc-unverified">${t('videoTitleUnverified', lang)}</span>`) +
+        `</div>`;
+    }
     if (currentVideoId) header += `<a class="mc-source-link" href="https://www.youtube.com/watch?v=${currentVideoId}" target="_blank" rel="noopener">https://www.youtube.com/watch?v=${currentVideoId}</a>`;
     header += `<div class="mc-source-time">${escapeHtml(genTime)}</div>`;
     header += `</div>`;
@@ -423,22 +431,19 @@
       sections.push(`<section class="mc-section"><h3>${t('keyInsights', lang)}</h3><ul>${data.keyInsights.map(i => `<li>${escapeHtml(i)}</li>`).join('')}</ul></section>`);
     }
 
-    // Timeline with clickable timestamps.
+    // Timeline with plain-text timestamps (no navigation link).
     if (data.timeline && data.timeline.length) {
       const items = data.timeline.map(i => {
-        const link = youtubeLink(i.time);
-        const timeHtml = link
-          ? `<a class="mc-ts" href="${link}" target="_blank" rel="noopener">${escapeHtml(i.time || '')}</a>`
-          : `<strong>${escapeHtml(i.time || '')}</strong>`;
+        const timeHtml = i.time ? `<strong>${escapeHtml(i.time)}</strong>` : '';
         return `<li>${timeHtml} ${escapeHtml(i.content || '')}</li>`;
       }).join('');
       sections.push(`<section class="mc-section"><h3>${t('timeline', lang)}</h3><ul>${items}</ul></section>`);
     }
 
-    // Action items as a checklist.
+    // Action items as a simple list (no checkbox).
     if (data.actionItems && data.actionItems.length) {
-      const items = data.actionItems.map(i => `<li class="mc-action-item"><label><input type="checkbox"> ${escapeHtml(i)}</label></li>`).join('');
-      sections.push(`<section class="mc-section"><h3>${t('actionItems', lang)}</h3><ul class="mc-checklist">${items}</ul></section>`);
+      const items = data.actionItems.map(i => `<li>${escapeHtml(i)}</li>`).join('');
+      sections.push(`<section class="mc-section"><h3>${t('actionItems', lang)}</h3><ul>${items}</ul></section>`);
     }
 
     resultEl.innerHTML = `
@@ -490,17 +495,14 @@
       lines.push(`## ${t('timeline', lang)}`);
       data.timeline.forEach((i) => {
         if (!i) return;
-        const link = youtubeLink(i.time);
-        const timePart = link
-          ? `[${i.time || ''}](https://www.youtube.com/watch?v=${currentVideoId}&t=${timeToSeconds(i.time)}s)`
-          : (i.time || '');
+        const timePart = i.time || '';
         lines.push(`- **${timePart}** ${i.content || ''}`.trim());
       });
       lines.push('');
     }
     if (data.actionItems && data.actionItems.length) {
       lines.push(`## ${t('actionItems', lang)}`);
-      data.actionItems.forEach((i) => { if (i) lines.push(`- [ ] ${i}`); });
+      data.actionItems.forEach((i) => { if (i) lines.push(`- ${i}`); });
       lines.push('');
     }
     return lines.join('\n');
@@ -539,6 +541,7 @@
     if (event.data.type === 'VIDEO_META') {
       currentVideoId = event.data.payload.videoId;
       currentTitle = event.data.payload.title;
+      titleVerified = !!event.data.payload.verified;
       selectedTrack = null;
       captionTracks = [];
       domCaptionText = '';
