@@ -163,17 +163,29 @@
     langBtn.addEventListener('click', switchLang);
 
     document.getElementById('mc-generate').addEventListener('click', onGenerate);
-    const copyBtn = document.getElementById('mc-copy-md');
-    if (copyBtn) copyBtn.addEventListener('click', () => {
-      if (!lastResult) return;
-      copyToClipboard(formatMarkdown(lastResult, currentTitle));
-    });
-    const dlBtn = document.getElementById('mc-download-md');
-    if (dlBtn) dlBtn.addEventListener('click', () => {
-      if (!lastResult) return;
-      const fname = (currentTitle || 'mindcapsule-notes').replace(/[\\/:*?"<>|]+/g, '_').slice(0, 80) + '.md';
-      downloadMarkdown(fname, formatMarkdown(lastResult, currentTitle));
-    });
+
+    // The Markdown export buttons are injected dynamically when a result is
+    // rendered, so bind via delegation on the (always-present) #mc-result
+    // container. This guarantees clicks work regardless of when the buttons
+    // are created or re-created on language switch.
+    const resultEl = document.getElementById('mc-result');
+    if (resultEl) {
+      resultEl.addEventListener('click', (e) => {
+        const copyBtn = e.target.closest('#mc-copy-md');
+        if (copyBtn) {
+          if (!lastResult) return;
+          copyToClipboard(formatMarkdown(lastResult, currentTitle));
+          return;
+        }
+        const dlBtn = e.target.closest('#mc-download-md');
+        if (dlBtn) {
+          if (!lastResult) return;
+          const fname = (currentTitle || 'mindcapsule-notes').replace(/[\\/:*?"<>|]+/g, '_').slice(0, 80) + '.md';
+          downloadMarkdown(fname, formatMarkdown(lastResult, currentTitle));
+        }
+      });
+    }
+
     enableDrag();
   }
 
@@ -401,24 +413,27 @@
     resultEl.hidden = false;
     const sections = [];
 
-    // Source header: title (with verification) + link + generated time.
+    // Source header: clickable title (with verification) + generated time.
     const genTime = new Date().toLocaleString(lang === 'zh' ? 'zh-CN' : 'en-US');
-    let header = `<div class="mc-source">`;
+    let header = `<section class="mc-section mc-source"><h3>${t('source', lang)}</h3>`;
     if (currentTitle) {
-      header += `<div class="mc-source-title">${escapeHtml(currentTitle)}</div>`;
+      if (currentVideoId) {
+        header += `<a class="mc-source-title" href="https://www.youtube.com/watch?v=${currentVideoId}" target="_blank" rel="noopener">${escapeHtml(currentTitle)}</a>`;
+      } else {
+        header += `<div class="mc-source-title">${escapeHtml(currentTitle)}</div>`;
+      }
       header += `<div class="mc-source-vtitle">${t('videoTitle', lang)}` +
         (titleVerified
           ? ` ✓`
           : ` · <span class="mc-unverified">${t('videoTitleUnverified', lang)}</span>`) +
         `</div>`;
     }
-    if (currentVideoId) header += `<a class="mc-source-link" href="https://www.youtube.com/watch?v=${currentVideoId}" target="_blank" rel="noopener">https://www.youtube.com/watch?v=${currentVideoId}</a>`;
     header += `<div class="mc-source-time">${escapeHtml(genTime)}</div>`;
-    header += `</div>`;
+    header += `</section>`;
 
     // TL;DR highlight, if present.
     if (data.tldr) {
-      sections.push(`<section class="mc-section mc-tldr"><p>${escapeHtml(data.tldr)}</p></section>`);
+      sections.push(`<section class="mc-section mc-tldr"><h3>${t('tldr', lang)}</h3><p>${escapeHtml(data.tldr)}</p></section>`);
     }
 
     // Summary.

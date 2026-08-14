@@ -270,23 +270,17 @@
 }
 
 .mc-source-title {
+  display: block;
   font-size: 12px;
   font-weight: 600;
   color: #ffffff;
   line-height: 1.4;
   word-break: break-word;
-}
-
-.mc-source-link {
-  display: block;
-  font-size: 11px;
-  color: #8ab4f8;
   text-decoration: none;
-  margin-top: 3px;
-  word-break: break-all;
 }
 
-.mc-source-link:hover {
+a.mc-source-title:hover {
+  color: #8ab4f8;
   text-decoration: underline;
 }
 
@@ -306,6 +300,7 @@
   border-radius: 8px;
   padding: 10px 12px;
   line-height: 1.5;
+  margin: 0;
 }
 
 /* Video title label under the source title, with verification status. */
@@ -313,6 +308,15 @@
   font-size: 10px;
   color: #7c8288;
   margin-top: 3px;
+}
+
+/* Heading spacing inside the source / TL;DR section boxes. */
+.mc-source h3 {
+  margin: 0 0 8px;
+}
+
+.mc-tldr h3 {
+  margin: 0 0 8px;
 }
 
 .mc-source-vtitle .mc-unverified {

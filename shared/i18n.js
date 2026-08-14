@@ -53,7 +53,9 @@ const I18N = Object.freeze({
     captionTip: 'Prefer English (auto-generated) captions for best results.',
     captionToggleHint: 'No captions? Turn YouTube subtitles (CC) off, then on again.',
     videoTitle: 'Video title',
-    videoTitleUnverified: 'Cannot confirm this is the current video title'
+    videoTitleUnverified: 'Cannot confirm this is the current video title',
+    source: 'Source',
+    tldr: 'TL;DR'
   },
   zh: {
     settingsTitle: 'MindCapsule 设置',
@@ -108,7 +110,9 @@ const I18N = Object.freeze({
     captionTip: '建议使用英语（自动生成）字幕，识别效果最佳。',
     captionToggleHint: '未检测到字幕？请关闭后再打开 YouTube 字幕（CC）。',
     videoTitle: '视频标题',
-    videoTitleUnverified: '无法确认是否为当前视频标题'
+    videoTitleUnverified: '无法确认是否为当前视频标题',
+    source: '来源',
+    tldr: '一句话总结'
   }
 });
 
