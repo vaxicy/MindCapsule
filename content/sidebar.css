@@ -269,19 +269,45 @@
   margin-bottom: 14px;
 }
 
-.mc-source-title {
-  display: block;
+/* Two-column source rows: label + value. */
+.mc-source-row {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  margin-top: 6px;
+}
+
+.mc-source-row:first-of-type {
+  margin-top: 0;
+}
+
+.mc-source-label {
+  color: #7c8288;
+  font-size: 11px;
+  min-width: 56px;
+  flex-shrink: 0;
+}
+
+.mc-source-value {
+  color: #ffffff;
   font-size: 12px;
-  font-weight: 600;
-  color: #8ab4f8;
-  line-height: 1.4;
   word-break: break-word;
+  flex: 1;
+}
+
+.mc-source-value.mc-source-missing {
+  color: #7c8288;
+}
+
+.mc-source-value a,
+.mc-source-link {
+  color: #8ab4f8;
   text-decoration: underline;
 }
 
-.mc-source-title:hover {
+.mc-source-link:hover,
+.mc-source-value a:hover {
   color: #aecbfa;
-  text-decoration: underline;
 }
 
 .mc-source-arrow {
@@ -289,41 +315,6 @@
   margin-left: 4px;
   font-size: 10px;
   line-height: 1;
-}
-
-.mc-source-link {
-  display: inline-flex;
-  align-items: center;
-  font-size: 11px;
-  color: #8ab4f8;
-  text-decoration: underline;
-  margin-top: 6px;
-}
-
-.mc-source-link:hover {
-  color: #aecbfa;
-}
-
-.mc-source-time {
-  font-size: 10px;
-  color: #7c8288;
-  margin-top: 3px;
-}
-
-/* TL;DR highlight box. */
-.mc-tldr p {
-  font-size: 13px;
-  font-weight: 600;
-  color: #ffffff;
-  line-height: 1.5;
-  margin: 0;
-}
-
-/* Video title label under the source title, with verification status. */
-.mc-source-vtitle {
-  font-size: 10px;
-  color: #7c8288;
-  margin-top: 3px;
 }
 
 /* Heading spacing inside the source / TL;DR section boxes. */
@@ -335,6 +326,6 @@
   margin: 0 0 8px;
 }
 
-.mc-source-vtitle .mc-unverified {
+.mc-unverified {
   color: #e8a33d;
 }

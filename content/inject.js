@@ -23,10 +23,34 @@
   function readVideoMeta() {
     const url = new URL(window.location.href);
     const videoId = url.searchParams.get('v') || '';
-    const titleEl = document.querySelector('h1.title.style-scope.ytd-video-primary-info-renderer');
-    let title = titleEl ? titleEl.textContent.trim() : (document.title || '');
-    // Strip the trailing " - YouTube" suffix that the document title carries.
+
+    // Preferred: ytInitialPlayerResponse.videoDetails.title is the most
+    // reliable title and is available very early (document_start).
+    let title = '';
+    try {
+      const vd = window.ytInitialPlayerResponse && window.ytInitialPlayerResponse.videoDetails;
+      if (vd && vd.title) title = String(vd.title).trim();
+    } catch (e) { /* ignore */ }
+
+    // Fallback 1: primary info renderer title (old layout).
+    if (!title) {
+      const el = document.querySelector('h1.title.style-scope.ytd-video-primary-info-renderer');
+      if (el) title = el.textContent.trim();
+    }
+    // Fallback 2: watch-metadata title (current layout).
+    if (!title) {
+      const el = document.querySelector('h1.style-scope.ytd-watch-metadata, h1.ytd-watch-metadata');
+      if (el) title = el.textContent.trim();
+    }
+    // Fallback 3: og:title meta.
+    if (!title) {
+      const el = document.querySelector('meta[property="og:title"]');
+      if (el && el.content) title = el.content.trim();
+    }
+    // Fallback 4: document.title minus the " - YouTube" suffix.
+    if (!title) title = document.title || '';
     title = title.replace(/\s*-\s*YouTube\s*$/i, '').trim();
+
     // Verify this title actually belongs to the current video: compare the
     // page's canonical link (or current URL) against the detected videoId.
     let verified = false;

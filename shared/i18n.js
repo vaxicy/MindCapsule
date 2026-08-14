@@ -54,6 +54,9 @@ const I18N = Object.freeze({
     captionToggleHint: 'No captions? Turn YouTube subtitles (CC) off, then on again.',
     videoTitle: 'Video title',
     videoTitleUnverified: 'Cannot confirm this is the current video title',
+    videoTitleMissing: 'Title not captured',
+    videoLink: 'Video link',
+    generatedAt: 'Generated',
     source: 'Source',
     openOnYoutube: 'Open on YouTube',
     tldr: 'TL;DR'
@@ -112,6 +115,9 @@ const I18N = Object.freeze({
     captionToggleHint: '未检测到字幕？请关闭后再打开 YouTube 字幕（CC）。',
     videoTitle: '视频标题',
     videoTitleUnverified: '无法确认是否为当前视频标题',
+    videoTitleMissing: '未获取到标题',
+    videoLink: '视频链接',
+    generatedAt: '生成时间',
     source: '来源',
     openOnYoutube: '在 YouTube 打开',
     tldr: '一句话总结'

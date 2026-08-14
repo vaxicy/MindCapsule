@@ -413,25 +413,30 @@
     resultEl.hidden = false;
     const sections = [];
 
-    // Source header: clickable title (with verification) + generated time.
+    // Source header: always show two rows (video title + video link), even if
+    // the title could not be captured, so the link is never hidden.
     const genTime = new Date().toLocaleString(lang === 'zh' ? 'zh-CN' : 'en-US');
+    const titleText = currentTitle ? escapeHtml(currentTitle) : t('videoTitleMissing', lang);
+    const titleClass = currentTitle ? 'mc-source-value' : 'mc-source-value mc-source-missing';
+
     let header = `<section class="mc-section mc-source"><h3>${t('source', lang)}</h3>`;
-    if (currentTitle) {
-      if (currentVideoId) {
-        header += `<a class="mc-source-title" href="https://www.youtube.com/watch?v=${currentVideoId}" target="_blank" rel="noopener">${escapeHtml(currentTitle)}<span class="mc-source-arrow">↗</span></a>`;
-      } else {
-        header += `<div class="mc-source-title">${escapeHtml(currentTitle)}</div>`;
-      }
-      header += `<div class="mc-source-vtitle">${t('videoTitle', lang)}` +
-        (titleVerified
-          ? ` ✓`
-          : ` · <span class="mc-unverified">${t('videoTitleUnverified', lang)}</span>`) +
-        `</div>`;
-      if (currentVideoId) {
-        header += `<a class="mc-source-link" href="https://www.youtube.com/watch?v=${currentVideoId}" target="_blank" rel="noopener">${t('openOnYoutube', lang)}<span class="mc-source-arrow">↗</span></a>`;
-      }
+    // Row 1: video title (with verification status).
+    header += `<div class="mc-source-row">` +
+      `<span class="mc-source-label">${t('videoTitle', lang)}</span>` +
+      `<span class="${titleClass}">${titleText}` +
+      (titleVerified ? ` ✓` : ` · <span class="mc-unverified">${t('videoTitleUnverified', lang)}</span>`) +
+      `</span></div>`;
+    // Row 2: video link (always clickable when a videoId is known).
+    header += `<div class="mc-source-row">` +
+      `<span class="mc-source-label">${t('videoLink', lang)}</span>`;
+    if (currentVideoId) {
+      header += `<a class="mc-source-value mc-source-link" href="https://www.youtube.com/watch?v=${currentVideoId}" target="_blank" rel="noopener">${t('openOnYoutube', lang)}<span class="mc-source-arrow">↗</span></a>`;
+    } else {
+      header += `<span class="mc-source-value mc-source-missing">—</span>`;
     }
-    header += `<div class="mc-source-time">${escapeHtml(genTime)}</div>`;
+    header += `</div>`;
+    // Row 3: generated time.
+    header += `<div class="mc-source-row"><span class="mc-source-label">${t('generatedAt', lang)}</span><span class="mc-source-value">${escapeHtml(genTime)}</span></div>`;
     header += `</section>`;
 
     // TL;DR highlight, if present.
