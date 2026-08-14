@@ -164,24 +164,34 @@
 
     document.getElementById('mc-generate').addEventListener('click', onGenerate);
 
-    // The Markdown export buttons are injected dynamically when a result is
+    // The copy/export dropdowns are injected dynamically when a result is
     // rendered, so bind via delegation on the (always-present) #mc-result
-    // container. This guarantees clicks work regardless of when the buttons
-    // are created or re-created on language switch.
+    // container. This guarantees change events work regardless of when the
+    // selects are created or re-created on language switch.
     const resultEl = document.getElementById('mc-result');
     if (resultEl) {
-      resultEl.addEventListener('click', (e) => {
-        const copyBtn = e.target.closest('#mc-copy-md');
-        if (copyBtn) {
-          if (!lastResult) return;
-          copyToClipboard(formatMarkdown(lastResult, currentTitle));
+      resultEl.addEventListener('change', (e) => {
+        const copySel = e.target.closest('#mc-copy-select');
+        if (copySel) {
+          if (!lastResult) { copySel.selectedIndex = 0; return; }
+          if (copySel.value === 'txt') {
+            copyToClipboard(formatPlainText(lastResult, currentTitle));
+          } else {
+            copyToClipboard(formatMarkdown(lastResult, currentTitle));
+          }
           return;
         }
-        const dlBtn = e.target.closest('#mc-download-md');
-        if (dlBtn) {
-          if (!lastResult) return;
-          const fname = (currentTitle || 'mindcapsule-notes').replace(/[\\/:*?"<>|]+/g, '_').slice(0, 80) + '.md';
-          downloadMarkdown(fname, formatMarkdown(lastResult, currentTitle));
+        const expSel = e.target.closest('#mc-export-select');
+        if (expSel) {
+          if (!lastResult) { expSel.selectedIndex = 0; return; }
+          const base = (currentTitle || 'mindcapsule-notes').replace(/[\\/:*?"<>|]+/g, '_').slice(0, 80);
+          if (expSel.value === 'txt') {
+            downloadText(base + '.txt', formatPlainText(lastResult, currentTitle));
+          } else if (expSel.value === 'pdf') {
+            exportPdf(lastResult, currentTitle);
+          } else {
+            downloadMarkdown(base + '.md', formatMarkdown(lastResult, currentTitle));
+          }
         }
       });
     }
@@ -253,10 +263,19 @@
     }
     const genBtn = document.getElementById('mc-generate');
     if (genBtn) genBtn.textContent = t('generate', lang);
-    const copyBtn = document.getElementById('mc-copy-md');
-    if (copyBtn) copyBtn.textContent = t('copyMarkdown', lang);
-    const dlBtn = document.getElementById('mc-download-md');
-    if (dlBtn) dlBtn.textContent = t('downloadMarkdown', lang);
+    const copySel = document.getElementById('mc-copy-select');
+    if (copySel) {
+      copySel.title = t('copyAs', lang);
+      if (copySel.options[0]) copySel.options[0].textContent = `${t('copyAs', lang)} · ${t('copyMarkdown', lang)}`;
+      if (copySel.options[1]) copySel.options[1].textContent = `${t('copyAs', lang)} · ${t('copyPlainText', lang)}`;
+    }
+    const expSel = document.getElementById('mc-export-select');
+    if (expSel) {
+      expSel.title = t('exportAs', lang);
+      if (expSel.options[0]) expSel.options[0].textContent = `${t('exportAs', lang)} · ${t('exportMarkdown', lang)}`;
+      if (expSel.options[1]) expSel.options[1].textContent = `${t('exportAs', lang)} · ${t('exportTxt', lang)}`;
+      if (expSel.options[2]) expSel.options[2].textContent = `${t('exportAs', lang)} · ${t('exportPdf', lang)}`;
+    }
     const redetect = document.getElementById('mc-redetect');
     if (redetect) redetect.textContent = t('redetectCaptions', lang);
     const tip = document.getElementById('mc-caption-tip');
@@ -452,8 +471,15 @@
 
     resultEl.innerHTML = `
       <div class="mc-export-bar">
-        <button id="mc-copy-md" class="mc-export-btn">${t('copyMarkdown', lang)}</button>
-        <button id="mc-download-md" class="mc-export-btn">${t('downloadMarkdown', lang)}</button>
+        <select id="mc-copy-select" class="mc-export-select" title="${t('copyAs', lang)}">
+          <option value="md">${t('copyAs', lang)} · ${t('copyMarkdown', lang)}</option>
+          <option value="txt">${t('copyAs', lang)} · ${t('copyPlainText', lang)}</option>
+        </select>
+        <select id="mc-export-select" class="mc-export-select" title="${t('exportAs', lang)}">
+          <option value="md">${t('exportAs', lang)} · ${t('exportMarkdown', lang)}</option>
+          <option value="txt">${t('exportAs', lang)} · ${t('exportTxt', lang)}</option>
+          <option value="pdf">${t('exportAs', lang)} · ${t('exportPdf', lang)}</option>
+        </select>
       </div>
       ${header}
       ${sections.join('\n')}
@@ -533,6 +559,88 @@
       a.click();
       document.body.removeChild(a);
       setTimeout(() => URL.revokeObjectURL(url), 1000);
+      setStatus(t('copied', lang));
+    } catch (e) {
+      setStatus(t('exportFailed', lang));
+    }
+  }
+
+  // Plain-text variant of the result: strip Markdown syntax, keep readable
+  // structure (headings become plain lines, lists keep their bullets).
+  function formatPlainText(data, title) {
+    const lines = [];
+    lines.push(`MindCapsule Notes — ${title || ''}`);
+    lines.push('');
+    if (currentVideoId) {
+      lines.push(`Source: https://www.youtube.com/watch?v=${currentVideoId}`);
+      lines.push('');
+    }
+    const pushBlock = (heading, items, list) => {
+      if (items && items.length) {
+        lines.push(heading);
+        items.forEach((i) => { if (i) lines.push(list ? `- ${i}` : i); });
+        lines.push('');
+      }
+    };
+    if (data.tldr) {
+      lines.push(`TL;DR: ${data.tldr}`);
+      lines.push('');
+    }
+    if (data.summary) {
+      lines.push(t('summary', lang));
+      lines.push(data.summary.trim());
+      lines.push('');
+    }
+    pushBlock(t('keyInsights', lang), data.keyInsights, true);
+    if (data.timeline && data.timeline.length) {
+      lines.push(t('timeline', lang));
+      data.timeline.forEach((i) => {
+        if (!i) return;
+        const timePart = i.time || '';
+        lines.push(`- ${timePart} ${i.content || ''}`.trim());
+      });
+      lines.push('');
+    }
+    pushBlock(t('actionItems', lang), data.actionItems, true);
+    return lines.join('\n').replace(/\n{3,}/g, '\n\n').trim();
+  }
+
+  function downloadText(filename, text) {
+    try {
+      const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename || 'mindcapsule-notes.txt';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      setStatus(t('copied', lang));
+    } catch (e) {
+      setStatus(t('exportFailed', lang));
+    }
+  }
+
+  // PDF via browser print: open a clean print window showing only the notes,
+  // then invoke print (user saves as PDF from the dialog). Zero dependencies.
+  function exportPdf(data, title) {
+    try {
+      const doc = formatPlainText(data, title);
+      const w = window.open('', '_blank');
+      if (!w) { setStatus(t('exportFailed', lang)); return; }
+      w.document.open();
+      w.document.write(
+        '<!doctype html><html><head><meta charset="utf-8">' +
+        '<title>' + escapeHtml(title || 'MindCapsule Notes') + '</title>' +
+        '<style>body{font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;' +
+        'line-height:1.6;color:#222;max-width:760px;margin:32px auto;padding:0 24px;' +
+        'white-space:pre-wrap;word-break:break-word;}@media print{body{margin:0;}}</style>' +
+        '</head><body>' + escapeHtml(doc) + '</body></html>'
+      );
+      w.document.close();
+      w.focus();
+      setTimeout(() => { w.print(); }, 300);
       setStatus(t('copied', lang));
     } catch (e) {
       setStatus(t('exportFailed', lang));
