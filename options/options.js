@@ -133,7 +133,7 @@
   async function persistSettings(showTip = true) {
     await chrome.storage.local.set({ [STORAGE_KEYS.SETTINGS]: collectSettings() });
     if (showTip) {
-      els.saveStatus.textContent = window.MC_T('saved', window.MC_LANG());
+      els.saveStatus.textContent = window.MC_T('saved', els.uiLang.value);
       els.saveStatus.classList.add('visible');
       setTimeout(() => els.saveStatus.classList.remove('visible'), 2000);
     }
