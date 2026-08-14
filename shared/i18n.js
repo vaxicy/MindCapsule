@@ -65,7 +65,7 @@ const I18N = Object.freeze({
     generatedAt: 'Generated',
     source: 'Source',
     openOnYoutube: 'Open on YouTube',
-    tldr: 'TL;DR'
+    tldr: 'Key Takeaway'
   },
   zh: {
     settingsTitle: 'MindCapsule 设置',

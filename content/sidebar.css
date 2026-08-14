@@ -336,7 +336,29 @@
   margin-bottom: 4px;
 }
 
-/* Heading spacing inside section boxes. */
+/* TL;DR / Key Takeaway highlighted card: visually distinct from other sections. */
+.mc-tldr {
+  background: #1b2733;
+  border: 1px solid #2f4a63;
+  border-left: 3px solid #4a9eff;
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin-bottom: 14px;
+}
+
 .mc-tldr h3 {
-  margin: 0 0 8px;
+  margin: 0 0 6px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: #4a9eff;
+}
+
+.mc-tldr p {
+  font-size: 13px;
+  line-height: 1.6;
+  color: #eaeef2;
+  margin: 0;
+  font-weight: 500;
 }

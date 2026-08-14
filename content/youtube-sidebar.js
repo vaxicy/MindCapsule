@@ -586,7 +586,7 @@
       lines.push('');
     }
     if (data.tldr) {
-      lines.push(`**TL;DR:** ${data.tldr}`);
+      lines.push(`**${t('tldr', lang)}:** ${data.tldr}`);
       lines.push('');
     }
     if (data.summary) {
@@ -661,7 +661,7 @@
       }
     };
     if (data.tldr) {
-      lines.push(`TL;DR: ${data.tldr}`);
+      lines.push(`${t('tldr', lang)}: ${data.tldr}`);
       lines.push('');
     }
     if (data.summary) {
