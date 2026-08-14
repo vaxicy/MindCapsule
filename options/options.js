@@ -139,8 +139,13 @@
   chrome.storage.onChanged.addListener((changes, area) => {
     if (area !== 'local' || !changes[STORAGE_KEYS.SETTINGS]) return;
     const newVal = changes[STORAGE_KEYS.SETTINGS].newValue;
-    if (newVal && newVal.uiLang && newVal.uiLang !== els.uiLang.value) {
-      els.uiLang.value = newVal.uiLang;
+    if (newVal && newVal.uiLang) {
+      if (newVal.uiLang !== els.uiLang.value) {
+        els.uiLang.value = newVal.uiLang;
+      }
+      // Re-translate the whole Options page when the UI language changes
+      // elsewhere (e.g. the popup or YouTube panel toggled it).
+      applyStaticI18n();
     }
   });
 })();

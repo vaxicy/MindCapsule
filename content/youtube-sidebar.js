@@ -576,6 +576,28 @@
       if (panelRoot) applyI18nToPanel();
     });
 
+    // Keep the panel in sync when the UI language changes elsewhere
+    // (popup or Options page wrote mc_settings.uiLang).
+    chrome.storage.onChanged.addListener((changes, area) => {
+      if (area !== 'local' || !changes[STORAGE_KEYS.SETTINGS]) return;
+      const newVal = changes[STORAGE_KEYS.SETTINGS].newValue;
+      const newLang = newVal && newVal.uiLang;
+      if (newLang !== 'zh' && newLang !== 'en') return;
+      if (newLang === lang) return;
+      lang = newLang;
+      applyI18nToPanel();
+      const resultEl = document.getElementById('mc-result');
+      if (resultEl && !resultEl.hidden && lastResult) {
+        renderResult(lastResult);
+      }
+      if (selectedTrack) {
+        const translateLabel = selectedTrack.translateTo ? ` → ${selectedTrack.translateTo}` : '';
+        const trackName = (selectedTrack.name || selectedTrack.languageCode) || t('autoCaption', lang);
+        const kindLabel = selectedTrack.kind === 'asr' ? t('autoCaption', lang) : t('manualCaption', lang);
+        setStatusLine(`${trackName}${translateLabel} · ${kindLabel}`);
+      }
+    });
+
     // inject.js is now declared in manifest.json as a MAIN-world content script
     // running at document_start, so it is already loaded and posting messages.
     // We no longer inject it manually from here.

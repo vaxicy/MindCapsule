@@ -28,9 +28,9 @@ body {
 .mc-popup-header {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
   margin-bottom: 10px;
-  text-align: center;
+  text-align: left;
 }
 
 .mc-popup-title {
@@ -39,6 +39,34 @@ body {
   margin: 0;
   line-height: 1.2;
   letter-spacing: -0.2px;
+}
+
+.mc-lang-toggle {
+  display: inline-flex;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  overflow: hidden;
+  flex: none;
+}
+
+.mc-lang-btn {
+  border: none;
+  background: transparent;
+  color: var(--sub);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 9px;
+  cursor: pointer;
+  line-height: 1.4;
+}
+
+.mc-lang-btn + .mc-lang-btn {
+  border-left: 1px solid var(--border);
+}
+
+.mc-lang-btn.active {
+  background: var(--accent);
+  color: #ffffff;
 }
 
 .mc-popup-desc {
