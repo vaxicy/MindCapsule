@@ -33,12 +33,28 @@ body {
   text-align: left;
 }
 
+.mc-popup-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.mc-popup-logo {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  object-fit: cover;
+  flex: none;
+}
+
 .mc-popup-title {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 700;
   margin: 0;
   line-height: 1.2;
   letter-spacing: -0.2px;
+  white-space: nowrap;
 }
 
 .mc-lang-toggle {
@@ -53,9 +69,9 @@ body {
   border: none;
   background: transparent;
   color: var(--sub);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
-  padding: 3px 9px;
+  padding: 2px 6px;
   cursor: pointer;
   line-height: 1.4;
 }
@@ -70,9 +86,9 @@ body {
 }
 
 .mc-popup-desc {
-  font-size: 13px;
+  font-size: 12px;
   color: var(--sub);
-  line-height: 1.5;
+  line-height: 1.45;
   margin: 0 0 12px;
 }
 
