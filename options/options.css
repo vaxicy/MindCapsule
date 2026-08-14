@@ -174,50 +174,30 @@ body {
   opacity: 1;
 }
 
-.mc-support-block {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+.mc-support-link {
+  display: inline-block;
   margin-top: 28px;
-  padding: 14px 16px;
-  padding-top: 14px;
-  border-top: 1px solid var(--border);
-  border: 1px solid var(--border);
-  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--accent);
+  text-decoration: none;
   cursor: pointer;
-  transition: border-color 0.15s, background 0.15s, transform 0.05s;
+  transition: color 0.15s, transform 0.05s;
 }
 
-.mc-support-block:hover {
-  border-color: var(--accent);
-  background: #0a0a0a;
+.mc-support-link:hover {
+  color: var(--accent-hover);
+  text-decoration: underline;
 }
 
-.mc-support-block:active {
+.mc-support-link:active {
   transform: translateY(1px);
 }
 
-.mc-support-block:focus-visible {
+.mc-support-link:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
-}
-
-.mc-support-label {
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--text);
-}
-
-.mc-support-arrow {
-  font-size: 20px;
-  line-height: 1;
-  color: var(--sub);
-  transition: color 0.15s;
-}
-
-.mc-support-block:hover .mc-support-arrow {
-  color: var(--accent);
+  border-radius: 2px;
 }
 
 .mc-modal {
