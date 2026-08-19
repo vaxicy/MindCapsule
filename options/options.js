@@ -129,12 +129,14 @@
     }
   }
 
-  // Persist the current input values into the active provider's slot (without
+  // Persist the current input values into a SPECIFIC provider's slot (without
   // touching other providers), then write the whole settings object back.
-  async function persistSlotThenSave(showTip, extra) {
+  // The caller decides which provider the inputs belong to — this avoids the
+  // bug where switching providers overwrote the target slot with the source
+  // provider's key.
+  async function persistSlotForProvider(provider, showTip, extra) {
     const data = await chrome.storage.local.get(STORAGE_KEYS.SETTINGS);
     const settings = migrateLegacy(data[STORAGE_KEYS.SETTINGS] || {});
-    const provider = els.provider.value;
     const isCustom = provider === PROVIDERS.CUSTOM_OPENAI;
     const slot = settings.providerConfigs[provider] || {};
     slot.apiKey = els.apiKey.value.trim();
@@ -158,6 +160,11 @@
       els.saveStatus.classList.add('visible');
       setTimeout(() => els.saveStatus.classList.remove('visible'), 2000);
     }
+  }
+
+  // Persist into the currently-selected provider's slot.
+  async function persistSlotThenSave(showTip, extra) {
+    await persistSlotForProvider(els.provider.value, showTip, extra);
   }
 
   // Fill inputs from the active provider's slot.
@@ -296,9 +303,12 @@
     });
     els.outputLang.addEventListener('change', () => persistSlotThenSave(true));
     els.provider.addEventListener('change', async () => {
-      // Persist the previous provider's inputs before switching.
-      await persistSlotThenSave(false);
+      // Capture the source provider BEFORE the select value changes, then
+      // save the current inputs into that provider's own slot. This is the
+      // fix: previously the inputs were saved into the NEW provider's slot,
+      // overwriting its stored key with the old provider's key.
       const prevProvider = currentProvider;
+      await persistSlotForProvider(prevProvider, false);
       currentProvider = els.provider.value;
       const data = await chrome.storage.local.get(STORAGE_KEYS.SETTINGS);
       applySlotToInputs(migrateLegacy(data[STORAGE_KEYS.SETTINGS] || {}));
