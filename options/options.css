@@ -132,6 +132,11 @@ body {
   border: 1px solid var(--border);
 }
 
+/* 测试连接按钮与上方输入框右边缘对齐 */
+#testConnection {
+  margin-left: auto;
+}
+
 .mc-btn-secondary:hover {
   border-color: var(--accent);
   background: #161616;
