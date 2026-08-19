@@ -93,6 +93,58 @@ body {
   box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.15);
 }
 
+.mc-input-with-toggle {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+}
+
+.mc-input-with-toggle input {
+  flex: 1 1 auto;
+  width: auto;
+}
+
+.mc-btn-toggle {
+  flex: none;
+  padding: 0 14px;
+  background: #0a0a0a;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, transform 0.05s;
+  white-space: nowrap;
+}
+
+.mc-btn-toggle:hover {
+  border-color: var(--accent);
+}
+
+.mc-btn-toggle:active {
+  transform: translateY(1px);
+}
+
+.mc-btn-secondary {
+  background: #0a0a0a;
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.mc-btn-secondary:hover {
+  border-color: var(--accent);
+  background: #161616;
+}
+
+.mc-status.ok {
+  color: #4ade80;
+}
+
+.mc-status.warn {
+  color: #fbbf24;
+}
+
 .mc-hint {
   font-size: 12px;
   color: var(--sub);

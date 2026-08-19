@@ -44,7 +44,10 @@
 
       <div class="mc-field">
         <label for="apiKey" data-i18n="apiKey">API Key</label>
-        <input type="password" id="apiKey" name="apiKey" placeholder="sk-..." autocomplete="off">
+        <div class="mc-input-with-toggle">
+          <input type="password" id="apiKey" name="apiKey" placeholder="sk-..." autocomplete="off">
+          <button type="button" id="toggleApiKey" class="mc-btn-toggle" data-i18n="showKey" aria-label="Toggle API Key visibility">显示</button>
+        </div>
         <p class="mc-hint" data-i18n="apiKeyHint">密钥仅保存在本地，不会上传或共享。</p>
       </div>
 
@@ -65,7 +68,9 @@
 
       <div class="mc-actions">
         <button type="submit" class="mc-btn mc-btn-primary" data-i18n="save">保存设置</button>
+        <button type="button" id="testConnection" class="mc-btn mc-btn-secondary" data-i18n="testConnection">测试连接</button>
         <span id="saveStatus" class="mc-status"></span>
+        <span id="testStatus" class="mc-status"></span>
       </div>
 
       <a class="mc-support-link" id="supportAuthorBlock" role="button" tabindex="0" data-i18n="supportAuthor">支持作者</a>

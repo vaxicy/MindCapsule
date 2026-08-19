@@ -78,7 +78,18 @@ const MC_I18N_MODULE = (function () {
       paypalTip: 'PayPal',
       paypalTipDesc: 'Open PayPal to pay',
       scanToTip: 'Scan to Tip',
-      scanHint: 'Scan with WeChat to support the author'
+      scanHint: 'Scan with WeChat to support the author',
+      showKey: 'Show',
+      hideKey: 'Hide',
+      testConnection: 'Test Connection',
+      testConnectionChecking: 'Testing connection...',
+      testConnectionSuccess: 'Connection successful',
+      testConnectionNoKey: 'Please enter an API Key first',
+      testConnectionBadKey: 'Invalid API Key',
+      testConnectionBadUrl: 'Invalid endpoint URL',
+      testConnectionFail: 'Connection failed',
+      testConnectionNetError: 'Network error, please check your connection',
+      testConnectionModelMissing: 'Connected, but the model is not in the endpoint list'
     },
     zh: {
       settingsTitle: 'MindCapsule 设置',
@@ -155,7 +166,18 @@ const MC_I18N_MODULE = (function () {
       paypalTip: 'PayPal 支持',
       paypalTipDesc: '前往 PayPal 付款',
       scanToTip: '扫码赞赏',
-      scanHint: '使用微信扫一扫，赞赏作者'
+      scanHint: '使用微信扫一扫，赞赏作者',
+      showKey: '显示',
+      hideKey: '隐藏',
+      testConnection: '测试连接',
+      testConnectionChecking: '正在测试连接...',
+      testConnectionSuccess: '连接成功',
+      testConnectionNoKey: '请先填写 API Key',
+      testConnectionBadKey: 'API Key 无效',
+      testConnectionBadUrl: '接口地址无效',
+      testConnectionFail: '连接失败',
+      testConnectionNetError: '网络错误，请检查网络连接',
+      testConnectionModelMissing: '已连接，但所选模型不在该端点列表中'
     }
   });
 

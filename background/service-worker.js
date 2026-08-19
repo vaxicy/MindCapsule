@@ -56,19 +56,23 @@ async function handleAnalysis(payload) {
   const { MC_CONSTANTS } = self;
   const openaiEndpoint = MC_CONSTANTS ? MC_CONSTANTS.OPENAI_ENDPOINT : 'https://api.openai.com/v1';
   const openaiDefaultModel = MC_CONSTANTS ? MC_CONSTANTS.OPENAI_DEFAULT_MODEL : 'gpt-4o-mini';
-  const endpoint = settings.provider === 'custom_openai'
-    ? settings.endpoint
-    : settings.provider === 'openai'
-      ? openaiEndpoint
-      : (MC_CONSTANTS ? MC_CONSTANTS.SILICONFLOW_ENDPOINT : 'https://api.siliconflow.cn/v1');
+  const siliconflowEndpoint = MC_CONSTANTS ? MC_CONSTANTS.SILICONFLOW_ENDPOINT : 'https://api.siliconflow.cn/v1';
+  const siliconflowDefaultModel = MC_CONSTANTS ? MC_CONSTANTS.SILICONFLOW_DEFAULT_MODEL : 'deepseek-ai/DeepSeek-V4-Flash';
 
-  const model = settings.provider === 'custom_openai'
-    ? (settings.customModel || settings.model)
-    : settings.provider === 'openai'
-      ? (settings.model || openaiDefaultModel)
-      : (settings.model || (MC_CONSTANTS ? MC_CONSTANTS.SILICONFLOW_DEFAULT_MODEL : 'Qwen/Qwen2.5-72B-Instruct'));
+  // Resolve provider settings from the per-provider slot, falling back to
+  // legacy flat fields for backward compatibility.
+  const provider = settings.provider || (MC_CONSTANTS ? MC_CONSTANTS.PROVIDERS.SILICONFLOW : 'siliconflow');
+  const slot = (settings.providerConfigs && settings.providerConfigs[provider]) || {};
+  const endpoint = slot.baseUrl
+    || (provider === 'custom_openai' ? settings.endpoint : null)
+    || (provider === 'openai' ? openaiEndpoint : siliconflowEndpoint);
 
-  if (!settings.apiKey) throw new Error('API_KEY_MISSING');
+  const model = slot.model
+    || (provider === 'custom_openai' ? (settings.customModel || settings.model) : null)
+    || (provider === 'openai' ? (settings.model || openaiDefaultModel) : (settings.model || siliconflowDefaultModel));
+
+  const apiKey = slot.apiKey || settings.apiKey || '';
+  if (!apiKey) throw new Error('API_KEY_MISSING');
   if (!endpoint) throw new Error('ENDPOINT_MISSING');
   if (!model) throw new Error('MODEL_MISSING');
 
@@ -101,7 +105,7 @@ ${langInstruction}`;
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${settings.apiKey}`
+        'Authorization': `Bearer ${apiKey}`
       },
       body: JSON.stringify({
         model,
