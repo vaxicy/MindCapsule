@@ -8,7 +8,6 @@
   <a href="https://www.youtube.com/"><img src="https://img.shields.io/badge/Platform-Chrome%20Extension-blue?logo=googlechrome" alt="Chrome Extension"></a>
   <a href="https://developer.chrome.com/docs/extensions/mv3"><img src="https://img.shields.io/badge/Manifest-V3-34A853?logo=googlechrome" alt="Manifest V3"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-Non--Commercial-red" alt="Non-Commercial License"></a>
-  <a href="https://chromewebstore.google.com/detail/mindcapsule-for-youtube/lojapnidfkblnddifioacdeemdhngkma"><img src="https://img.shields.io/chrome-web-store/v/lojapnidfkblnddifioacdeemdhngkma?label=Chrome%20Web%20Store" alt="Chrome Web Store"></a>
 </p>
 
 <p align="center">
@@ -20,19 +19,19 @@
 
 ## 功能 Features
 
-MindCapsule 在 YouTube 观看页注入一个可折叠的侧边栏（或弹窗），把视频字幕/文稿交给 AI，自动生成五类结构化笔记：
+MindCapsule 在 YouTube 观看页注入一个可折叠的侧边栏（或弹窗），把视频字幕/文稿交给 AI，自动生成四类结构化笔记：
 
-- **一句话总结（TL;DR）** — 用一句话概括视频的核心论点。
+- **一句话总结（TL;DR）** — 用一句话点出视频最核心的论点。
 - **内容摘要（Summary）** — 3–5 句话讲清核心思路。
 - **关键洞察（Key Insights）** — 3–5 条独立的概念性洞察、观点或结论。
 - **时间线（Timeline）** — 带有时间戳（如 `2:30`）的关键片段，方便回看。
 - **行动项（Action Items）** — 2–5 条可立即落地的下一步。
 
-字幕直接取自视频本身：优先使用原语言字幕轨，也可按需启用自动翻译，因此除特殊情况外无需手动粘贴文稿。随后由你配置的 AI 服务商把文稿整理成以上五个部分。
+MindCapsule automatically extracts the video's caption/transcript (preferring the original-language source track, with optional auto-translation), so you usually don't need to paste anything manually. It then asks your own AI provider to turn that transcript into the four sections above.
 
 Additional highlights:
 
-- **中英双语界面** — 弹窗、设置页与侧边栏共用同一语言设置，切换后三处同时生效。
+- **中英双语界面** — popup、设置页、侧边栏三处语言完全同步，改一处其余自动跟随。
 - **生成语言可控** — 可跟随视频原语言、强制中文或英文。
 - **多家 AI 服务商** — 硅基流动（SiliconFlow）、OpenAI，以及任意 OpenAI 兼容接口（自定义地址 + 自定义模型）。
 - **API Key 仅存本地** — 只保存在浏览器 `chrome.storage.local`，不上传、不共享、不读取无关网页内容。
@@ -48,11 +47,9 @@ Additional highlights:
 4. 点击扩展图标 → 「打开设置」，填写你的 API Key 并选择服务商。
 5. 打开任意 YouTube 视频，右侧出现 MindCapsule 面板，点击「生成笔记」。
 
-### 从 Chrome Web Store 安装
+### From Chrome Web Store
 
-[![Chrome Web Store](https://img.shields.io/chrome-web-store/v/lojapnidfkblnddifioacdeemdhngkma?label=Chrome%20Web%20Store)](https://chromewebstore.google.com/detail/mindcapsule-for-youtube/lojapnidfkblnddifioacdeemdhngkma)
-
-在商店页点击「添加至 Chrome」安装，后续版本自动更新。
+> 即将上架 Chrome Web Store。上架后可直接搜索 "MindCapsule" 一键安装。
 
 ## 设置 Settings
 
@@ -109,4 +106,4 @@ Non-Commercial License（非商业使用许可）。可免费用于个人、教�
 
 ---
 
-MindCapsule for YouTube — 把长视频整理成结构化的可读笔记。
+MindCapsule for YouTube — Turn every video into a knowledge capsule.
